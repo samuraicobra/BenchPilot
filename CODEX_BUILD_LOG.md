@@ -98,3 +98,22 @@ Append one entry after integration rather than rewriting earlier facts:
 - Mobile/desktop and keyboard/accessibility outcome:
 - Secret and numerical traceability audit outcome:
 - Remaining known limitation:
+
+### 2026-07-18 — Integrated validation and private release
+
+- Release SHA: `d5721a02725051368c7ecf08f2bffe2bf7c51b3d`
+- Private production URL: `https://benchpilot.samuraicobra.chatgpt.site`
+- Formatting: `npm run format` completed; the final `npm run format:check` passed.
+- Static quality: `npm run lint` and `npm run typecheck` both passed with exit code 0.
+- Unit tests: `npm run test:unit` passed 17/17 tests across the domain and seeded-demo suites.
+- Integration tests: `npm run test:integration` passed 13/13 API and UI tests, completed the production Vinext build, and then passed 2/2 rendered-HTML checks. Total automated assertions: 32.
+- Production dependencies: `npm audit --omit=dev` reported zero vulnerabilities.
+- Tests added/fixed: schema completeness, measurement parsing, deterministic ordering, chart-source fidelity, matrix construction and simulated updates, no-key demo loading, request/file limits, prompt-injection framing, upstream/malformed output, API error mapping, abort behavior, workflow rendering, and production metadata.
+- Bugs found during QA: a removed skeleton dependency remained in Vite's development optimizer cache. The stale preview failed hydration even though server HTML rendered. Restarting the development server rebuilt the dependency graph; a clean browser tab then completed the full workflow without console errors. Accessible tab names also intentionally shorten at the mobile breakpoint, so selectors and the visual design were verified against the responsive DOM.
+- No-key demo outcome: passed locally at 1440×900 and 390×844. Capture, Structure, Challenge, Test, Compare, the matrix update, validated-data chart, and printable report all worked. At 390 px, document width stayed within the viewport; the matrix remains available through its own intentional responsive scroll surface.
+- Keyboard/accessibility outcome: stages expose tab/tablist/tabpanel semantics, matrix meaning is present in text rather than color alone, buttons and evidence controls have accessible names, reduced-motion CSS is present, and the report closes with Escape. A full assistive-technology certification was outside this release pass.
+- Live API outcome: no `OPENAI_API_KEY` was present, so no billable model call is claimed. The live boundary was verified through injected SDK/API integration tests covering successful structured data, invalid/incomplete output, unsupported and oversized files, missing key, upstream failures, aborts, and instruction-like note content.
+- Numerical traceability: the seeded chart audit asserts the exact eight source readings; the illustrative 1.08 V matrix update is schema-labeled simulated and tested to remain outside both run measurement arrays and all chart series.
+- Secret audit: the repository scan found no API key, bearer token, or private credential pattern. `.env.local` is ignored and only the empty `.env.example` is tracked.
+- Deployment: Sites version 1 reached `succeeded` at 2026-07-18 15:30 UTC. Access remains owner-only/private as required by the default safe deployment path. The production authorization page rendered without console warnings; application-body smoke testing requires the owner to sign in.
+- Remaining known limitation: the strongest pre-submission improvement is to add a real prototype photograph and record one live GPT-5.6 run, then explicitly make the site public before judging if the owner approves that access change.

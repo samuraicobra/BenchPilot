@@ -8,7 +8,7 @@
 - [ ] Remove starter copy, placeholder controls, debug panels, console logging of evidence, and unused assets.
 - [ ] Confirm no D1 or R2 binding is required; `.openai/hosting.json` should remain valid for browser-only persistence.
 
-Release SHA: `________________`
+Release SHA: `d5721a02725051368c7ecf08f2bffe2bf7c51b3d`
 
 ## 2. Secrets and configuration
 
@@ -70,9 +70,11 @@ npm run build
 - [ ] Do not add database or object-storage bindings for the contest build.
 - [ ] Record the public URL, deployment timestamp, release SHA, and deployment ID below.
 
-Public URL: `________________`  
-Deployment time: `________________`  
-Deployment ID: `________________`
+- Private production URL: `https://benchpilot.samuraicobra.chatgpt.site`
+- Deployment time: `2026-07-18 15:30 UTC`
+- Deployment ID: `appgdep_6a5b9c0fec7081919f3ad3af997c80fb`
+
+The deployed version is owner-only by default. Before sending the URL to judges, the owner must explicitly change Sites access to public and repeat the signed-out production smoke test.
 
 ## 7. Production smoke test
 
