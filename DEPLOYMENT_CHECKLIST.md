@@ -8,7 +8,7 @@
 - [ ] Remove starter copy, placeholder controls, debug panels, console logging of evidence, and unused assets.
 - [ ] Confirm no D1 or R2 binding is required; `.openai/hosting.json` should remain valid for browser-only persistence.
 
-Release SHA: `d5721a02725051368c7ecf08f2bffe2bf7c51b3d`
+Release SHA: `1baa395b2e6ebf6fb325aa8565f9944079f98d43`
 
 ## 2. Secrets and configuration
 
@@ -75,6 +75,8 @@ npm run build
 - Deployment ID: `appgdep_6a5b9c0fec7081919f3ad3af997c80fb`
 
 The deployed version is owner-only by default. Before sending the URL to judges, the owner must explicitly change Sites access to public and repeat the signed-out production smoke test.
+
+Latest release status: Sites version 2 was saved from the release SHA above, but its owner-only deployment failed with a provider `Unauthorized` response. The URL currently serves the prior successful version until the hosting authorization issue is resolved and version 2 is redeployed.
 
 ## 7. Production smoke test
 
