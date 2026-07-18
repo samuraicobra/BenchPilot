@@ -56,7 +56,7 @@ Capture at 1440 × 900 unless noted. Use realistic zinc-air content, a clean bro
 
 **Frame:** Voltage-versus-time chart with both run names/legend, readable points, validated-data note, and configuration differences.
 
-**Caption:** “Validated measurements reveal the anomaly at a glance: one loaded run collapses while another slowly recovers.”
+**Caption:** “The latest build sustains about 1.10 V versus an older 0.482 V collapse—but BenchPilot withholds causal attribution until six controls are matched.”
 
 **Why it matters:** Provides the clearest numerical proof of product utility.
 

@@ -6,20 +6,30 @@ Use this exact evidence in the seeded demonstration and any live-analysis rehear
 
 ### Experiment question
 
-> Why did voltage rise during one run but collapse during another?
+> Which construction change raised loaded voltage, and is the gain reproducible?
 
 ### Shared reported configuration
 
-| Field       | Exact value                               |
-| ----------- | ----------------------------------------- |
-| Anode       | Zinc                                      |
-| Air cathode | Carbon and manganese dioxide              |
-| Binder      | Acrylic binder                            |
-| Electrolyte | Approximately 30% KOH                     |
-| Separator   | No conventional separator in this version |
-| Load        | Fan                                       |
+| Field       | Exact value                                      |
+| ----------- | ------------------------------------------------ |
+| Anode       | Zinc                                             |
+| Air cathode | Activated carbon and manganese dioxide           |
+| Binder      | Acrylic binder                                   |
+| Electrolyte | Approximately 30% KOH                            |
+| Cell format | Improvised Tic Tac container                     |
+| Instrument  | Analog Devices Scopy voltmeter                   |
+| Load        | Same or similar to older run; current not logged |
 
-### Run A — `Zinc-air prototype — rapid load collapse`
+### Run A — `Zinc-air prototype — latest sustained output`
+
+| Elapsed time     | Condition    |              Voltage |
+| ---------------- | ------------ | -------------------: |
+| 0 s              | Open circuit |              1.692 V |
+| **Not recorded** | Under load   | Approximately 1.10 V |
+
+The loaded reading is real reported evidence, but its elapsed time is unknown. Show it in the timeline and report; do not place it on the voltage-versus-time chart.
+
+### Run B — `Zinc-air prototype — rapid load collapse`
 
 | Elapsed time | Condition    | Voltage |
 | -----------: | ------------ | ------: |
@@ -27,24 +37,14 @@ Use this exact evidence in the seeded demonstration and any live-analysis rehear
 |         10 s | Fan load     | 0.732 V |
 |         60 s | Fan load     | 0.482 V |
 
-### Run B — `Zinc-air prototype — delayed voltage recovery`
-
-The source note does not provide an open-circuit value for this run. Keep it unknown.
-
-| Elapsed time | Condition  | Voltage |
-| -----------: | ---------- | ------: |
-|         60 s | Under load | 0.912 V |
-|        300 s | Under load | 1.130 V |
-|        600 s | Under load | 1.253 V |
-|      1,380 s | Under load | 1.298 V |
-|      1,800 s | Under load | 1.308 V |
-
 ### Data-integrity rules
 
-- Treat every value and material above as **user-reported**, not image-derived.
-- Do not infer a zero-time value for Run B.
+- Treat the latest voltage values as **instrument readouts reported by the user**; treat construction and materials as user-reported.
+- Do not invent an elapsed time for the approximately 1.10 V reading.
 - Preserve `approximately` on the KOH concentration.
-- Do not imply that both runs had identical geometry, temperature, cathode wetting, electrolyte volume, air exposure, contact pressure, or rest time; those are missing controls unless separately documented.
+- Before attributing causation, explicitly control load current, cell hydration, cathode thickness, air exposure, contact resistance, and elapsed time.
+- Do not imply the older and latest loads were identical; the user reported “same or similar.”
+- Do not carry the older run’s no-separator detail into the latest build unless newly confirmed.
 - Show KOH handling, eye/skin exposure, electrical shorting, and safe stop conditions as safety considerations—not proof of a failure mechanism.
 - Any image observation must name the image and carry uncertainty. Do not claim scale, hidden construction, chemical composition, or causality from pixels alone.
 - Any hypothesis title or confidence shown in the recording must be labeled as AI-generated interpretation.
@@ -57,7 +57,7 @@ Use these exact seeded hypothesis titles:
 2. **Air-cathode transport state**
 3. **Intermittent electrical contact**
 
-The prepared matrix-only measurement is **Voltage after controlled electrolyte rewet: 1.08 V at 60 s**. It is explicitly **simulated** for testing how evidence would update. Keep the simulated label and disclaimer visible. It must never appear in the observed-data timeline or voltage chart.
+The prepared matrix-only measurement is **Three matched latest builds hold approximately 1.10 V at 60 s**. It is explicitly **simulated** for demonstrating how reproducibility would update evidence. Keep the simulated label and disclaimer visible. It must never appear in the observed-data timeline or voltage chart.
 
 ## Prepared browser state
 
@@ -74,12 +74,12 @@ The prepared matrix-only measurement is **Voltage after controlled electrolyte r
 ## Primary 105-second recording path
 
 1. **Opening (0:00):** Start on the first viewport with the tagline and **Load zinc-air demo** visible. Wait one beat.
-2. **Capture (0:10):** Activate **Load zinc-air demo**. Show the shared configuration, raw question, evidence/image area, and Run A readings.
+2. **Capture (0:10):** Activate **Load zinc-air demo**. Show the Scopy instrument, Tic Tac format, raw question, and latest readings.
 3. **Structure (0:23):** Open **Structure**. Point to at least three distinct provenance labels—reported fact, image observation or unknown, and safety consideration—without reading every card.
 4. **Challenge (0:37):** Open **Challenge**. Show no more than three explanation cards. Pause on one “evidence against” item and one falsifier.
-5. **Hypothesis Matrix (0:53):** Fit hypothesis labels and observation columns on screen. Add **Voltage after controlled electrolyte rewet: 1.08 V at 60 s** and keep its **simulated** label visible. Hold long enough to see the changed cell and explanatory text. Never let this simulated value appear on the observed-data chart.
+5. **Hypothesis Matrix (0:53):** Fit hypothesis labels and observation columns on screen. Add **Three matched latest builds hold 1.10 V at 60 s** and keep its **simulated** label visible. Hold long enough to see the changed cells and explanation.
 6. **Test (1:10):** Open **Test**. Show the top-ranked plan’s changed variable, required controls, exact readings, hypothesis-specific predictions, stop condition, effort, information value, and safety note.
-7. **Compare (1:25):** Open **Compare**. Hover or keyboard-focus the chart points for 0.482 V at 60 s in Run A and 1.308 V at 1,800 s in Run B. Show configuration/unknown differences and the support-shift summary.
+7. **Compare (1:25):** Open **Compare**. Show the 0.482 V collapse point, the latest 1.692 V OCV, the note explaining why ~1.10 V is not plotted, and the six-item causal-control warning.
 8. **Close (1:40):** End on the workflow summary, report action, or BenchPilot mark while delivering the final line.
 
 ## Screens to capture
@@ -118,12 +118,12 @@ If live analysis is slow, rate-limited, unavailable, or produces a result that w
 
 ## Final evidence audit
 
-- [ ] The chart shows only the eight readings listed above.
+- [ ] The chart shows only four time-qualified readings: latest 1.692 V OCV plus the older 1.562 V, 0.732 V, and 0.482 V points.
 - [ ] Time units are consistent and sorted numerically.
-- [ ] Run B has no invented open-circuit point.
+- [ ] The real approximately 1.10 V loaded reading is visible in the timeline but absent from the time chart because elapsed time is unknown.
 - [ ] No model statement is voiced as a proven explanation.
 - [ ] The matrix update corresponds to the measurement actually shown.
-- [ ] The 1.08 V controlled-rewet value is visibly labeled simulated and is absent from the observed-data chart.
+- [ ] The matched-replicate 1.10 V-at-60-s outcome is visibly labeled simulated and absent from the observed-data chart.
 - [ ] Every safety statement is advisory and proportionate.
 - [ ] The final video is 90–120 seconds, legible at 1080p, and understandable without audio captions being enabled.
 - [ ] Add burned-in captions and verify technical terms: zinc-air, manganese dioxide, KOH, hypothesis, and falsifiable.

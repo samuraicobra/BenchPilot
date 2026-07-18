@@ -9,7 +9,7 @@ describe("zinc-air demo loading", () => {
     expect(loadDemoDataset().runs).toHaveLength(2);
   });
 
-  it("contains the exact supplied current-run measurements", () => {
+  it("contains the exact supplied latest-run measurements and provenance", () => {
     const dataset = loadDemoDataset();
     const active = dataset.runs.find(({ id }) => id === dataset.activeRunId)!;
 
@@ -19,13 +19,18 @@ describe("zinc-air demo loading", () => {
         elapsedSeconds,
       ]),
     ).toEqual([
-      [1.562, 0],
-      [0.732, 10],
-      [0.482, 60],
+      [1.692, 0],
+      [1.1, null],
     ]);
+    expect(active.apparatus.map(({ name }) => name)).toEqual(
+      expect.arrayContaining([
+        "Improvised Tic Tac container cell",
+        "Analog Devices Scopy voltmeter",
+      ]),
+    );
   });
 
-  it("contains the exact supplied earlier-run measurements", () => {
+  it("compares against the exact supplied collapse-run measurements", () => {
     const dataset = loadDemoDataset();
     const earlier = dataset.runs.find(
       ({ id }) => id === dataset.comparisonRunId,
@@ -37,11 +42,9 @@ describe("zinc-air demo loading", () => {
         elapsedSeconds,
       ]),
     ).toEqual([
-      [0.912, 60],
-      [1.13, 300],
-      [1.253, 600],
-      [1.298, 1_380],
-      [1.308, 1_800],
+      [1.562, 0],
+      [0.732, 10],
+      [0.482, 60],
     ]);
   });
 
@@ -49,8 +52,8 @@ describe("zinc-air demo loading", () => {
     const first = loadDemoDataset();
     first.runs[0].measurements[0].value = 999;
 
-    expect(loadDemoDataset().runs[0].measurements[0].value).toBe(1.562);
-    expect(demoDataset.runs[0].measurements[0].value).toBe(1.562);
+    expect(loadDemoDataset().runs[0].measurements[0].value).toBe(1.692);
+    expect(demoDataset.runs[0].measurements[0].value).toBe(1.692);
   });
 
   it("keeps the simulated matrix scenario outside observed run data", () => {
@@ -78,6 +81,16 @@ describe("zinc-air demo loading", () => {
     expect(active.nextExperiments.map(({ rank }) => rank)).toEqual([1, 2, 3]);
     expect(active.nextExperiments[0].informationGainPerEffort).toBeGreaterThan(
       active.nextExperiments[1].informationGainPerEffort,
+    );
+    expect(dataset.comparison.changedVariables).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/load current/i),
+        expect.stringMatching(/hydration/i),
+        expect.stringMatching(/cathode thickness/i),
+        expect.stringMatching(/air/i),
+        expect.stringMatching(/contact resistance/i),
+        expect.stringMatching(/elapsed time/i),
+      ]),
     );
   });
 

@@ -60,4 +60,29 @@ describe("BenchPilot demo workflow", () => {
       screen.queryByRole("button", { name: /add simulated measurement/i }),
     ).not.toBeInTheDocument();
   });
+
+  it("compares the latest real run without inventing time or causal certainty", async () => {
+    render(<BenchPilotApp />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /load zinc-air demo/i }),
+    );
+    await act(async () => vi.advanceTimersByTimeAsync(450));
+    fireEvent.click(screen.getByRole("tab", { name: /compare/i }));
+
+    expect(
+      screen.getByText(/1 validated reading with unrecorded elapsed time/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("note", { name: /causal attribution warning/i }),
+    ).toHaveTextContent(/load current/i);
+    expect(
+      screen.getByRole("note", { name: /causal attribution warning/i }),
+    ).toHaveTextContent(/cathode thickness/i);
+    expect(
+      screen.getByText(/1\.692 V fresh open circuit/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/approximately 1\.10 V; elapsed time not recorded/i),
+    ).toBeInTheDocument();
+  });
 });

@@ -678,7 +678,7 @@ const earlierHypotheses = hypotheses({
   visualCathode: "earlier-image-cathode",
 });
 
-const earlierRun: ExperimentRun = {
+export const historicalRecoveryRun: ExperimentRun = {
   id: "zinc-air-recovery",
   title: "Zinc-air prototype — delayed voltage recovery",
   objective:
@@ -942,137 +942,573 @@ const earlierRun: ExperimentRun = {
   },
 };
 
+const latestHypotheses: Hypothesis[] = hypotheses({
+  collapse: "reported-prior-collapse",
+  recovery: "latest-voltage-loaded",
+  highOpenCircuit: "latest-voltage-ocv",
+  visualCathode: "reported-tic-tac-format",
+}).map((hypothesis) => ({
+  ...hypothesis,
+  confidence: "low",
+  unknowns: [
+    ...hypothesis.unknowns,
+    "The construction change and repeatability of the latest result have not been isolated.",
+  ],
+}));
+
+const latestNextExperiments: NextExperiment[] = [
+  {
+    ...nextExperiments[0],
+    id: "test-latest-replicates",
+    rank: 1,
+    title: "Matched latest-build replication",
+    rationale:
+      "Before attributing cause, establish whether the approximately 1.10 V loaded result survives matched rebuilds under a characterized load.",
+    changedVariable:
+      "Assembly identity only: build at least three nominally identical Tic Tac-format cells from the latest construction recipe.",
+    controlledVariables: [
+      "Same measured load current, acquisition schedule, and Scopy voltmeter setup",
+      "Same KOH concentration, electrolyte dose, hydration/conditioning time, and temperature",
+      "Same cathode batch, thickness, mass loading, binder ratio, exposed air area, and zinc geometry",
+      "Same fixed-pressure contacts, lead locations, container geometry, and ambient airflow",
+    ],
+    measurementsToCapture: [
+      "Open-circuit voltage immediately before loading",
+      "Synchronized loaded voltage and current every 10 seconds for two minutes, then every minute to 10 minutes",
+      "Electrolyte dose and whole-cell mass, cathode thickness/mass, exposed air area, contact voltage drops, temperature, and humidity",
+    ],
+    expectations: [
+      {
+        hypothesisId: "electrolyte-redistribution",
+        expectedResult:
+          "Matched hydration produces tightly grouped voltage trajectories across the latest builds.",
+        resultThatWeakensIt:
+          "Large run-to-run scatter remains despite measured, matched hydration and electrolyte dose.",
+      },
+      {
+        hypothesisId: "air-cathode-transport",
+        expectedResult:
+          "Matched cathode thickness and exposed air area produce repeatable loaded performance.",
+        resultThatWeakensIt:
+          "Performance remains variable while air-side geometry and airflow are demonstrably matched.",
+      },
+      {
+        hypothesisId: "electrical-contact",
+        expectedResult:
+          "Connection voltage drops predict any remaining cell-to-cell performance differences.",
+        resultThatWeakensIt:
+          "Fixed-pressure contacts remain stable while cell voltage still varies materially.",
+      },
+    ],
+    informationGainPerEffort: 9.7,
+  },
+  {
+    ...nextExperiments[1],
+    id: "test-construction-rollback",
+    rank: 2,
+    title: "One-factor construction rollback",
+    rationale:
+      "A build-sheet comparison followed by one controlled rollback can identify which candidate change carries the performance gain.",
+    changedVariable:
+      "After documenting old versus latest builds, revert exactly one candidate change—hydration, cathode thickness, air window, container geometry, or contact fixture—per paired test.",
+    controlledVariables: [
+      "Same characterized load and elapsed-time schedule",
+      "All untested construction dimensions and material batches",
+      "Same Scopy channels, wiring, temperature, humidity, and assembly conditioning time",
+    ],
+    measurementsToCapture: [
+      "Loaded voltage and current every 10 seconds for 10 minutes",
+      "The exact reverted dimension, dose, mass, or fixture setting",
+      "Contact voltage drops, cathode air-side area, cell mass, and temperature",
+    ],
+    expectations: [
+      {
+        hypothesisId: "electrolyte-redistribution",
+        expectedResult:
+          "Reverting hydration or electrolyte geometry recreates the low-voltage trajectory.",
+        resultThatWeakensIt:
+          "Hydration rollback has no repeatable effect in matched pairs.",
+      },
+      {
+        hypothesisId: "air-cathode-transport",
+        expectedResult:
+          "Reverting cathode thickness or exposed air area recreates the loss under load.",
+        resultThatWeakensIt:
+          "Air-side rollback produces no repeatable trajectory change.",
+      },
+      {
+        hypothesisId: "electrical-contact",
+        expectedResult:
+          "Reverting the connection fixture increases measured contact drop and lowers terminal voltage.",
+        resultThatWeakensIt:
+          "Contact drops remain negligible while the voltage benefit disappears.",
+      },
+    ],
+    estimatedEffort: "medium",
+    informationValue: "high",
+    informationGainPerEffort: 8.7,
+  },
+  {
+    ...nextExperiments[2],
+    rank: 3,
+  },
+];
+
+const latestRun: ExperimentRun = {
+  ...activeRun,
+  id: "zinc-air-latest-sustained",
+  title: "Zinc-air prototype — latest sustained output",
+  objective:
+    "Determine which construction change raised loaded voltage from approximately 0.46–0.48 V in earlier versions to approximately 1.10 V, and whether the improvement is reproducible.",
+  createdAt: "2026-07-18T15:45:00.000Z",
+  apparatus: [
+    {
+      id: "tic-tac-cell",
+      name: "Improvised Tic Tac container cell",
+      details:
+        "Latest reported zinc-air construction; dimensions, electrode spacing, and air-window geometry were not recorded.",
+      provenance: "user_reported",
+    },
+    {
+      id: "scopy-voltmeter",
+      name: "Analog Devices Scopy voltmeter",
+      details:
+        "Used for the latest 1.692 V open-circuit and approximately 1.100 V loaded readings; range and uncertainty were not supplied.",
+      provenance: "instrument_readout",
+    },
+    {
+      id: "latest-load",
+      name: "Same or similar electrical load",
+      details:
+        "The user described the load as the same or similar to earlier trials; identity and current were not recorded.",
+      provenance: "user_reported",
+    },
+  ],
+  materials: materials.map((item) =>
+    item.id === "air-cathode"
+      ? { ...item, composition: "Activated carbon and manganese dioxide" }
+      : { ...item },
+  ),
+  independentVariables: [
+    {
+      id: "construction-revision",
+      name: "Construction revision",
+      value: "Latest Tic Tac-format build",
+      unit: null,
+      description:
+        "One or more construction details changed, but the changed variables were not logged individually.",
+      provenance: "user_reported",
+    },
+  ],
+  controlledVariables: commonVariables.controlledVariables
+    .filter((item) => item.id === "nominal-chemistry")
+    .map((item) => ({ ...item })),
+  measurements: [
+    {
+      id: "latest-voltage-ocv",
+      name: "Fresh open-circuit voltage",
+      value: 1.692,
+      unit: "V",
+      elapsedSeconds: 0,
+      capturedAt: null,
+      method: "Analog Devices Scopy voltmeter reading reported by the user.",
+      condition: "Fresh cell at open circuit before the latest loaded reading.",
+      provenance: "instrument_readout",
+      uncertainty: {
+        value: null,
+        unit: null,
+        note: "Scopy range, probe configuration, and uncertainty were not supplied.",
+      },
+    },
+    {
+      id: "latest-voltage-loaded",
+      name: "Latest loaded voltage",
+      value: 1.1,
+      unit: "V",
+      elapsedSeconds: null,
+      capturedAt: null,
+      method:
+        "Approximate Analog Devices Scopy voltmeter reading reported by the user.",
+      condition:
+        "Under the same or a similar load; elapsed time and load current were not recorded.",
+      provenance: "instrument_readout",
+      uncertainty: {
+        value: null,
+        unit: null,
+        note: "Reported as approximately 1.100 V; timing, load current, and instrument uncertainty are unknown.",
+      },
+    },
+  ],
+  reportedObservations: [
+    {
+      id: "reported-prior-collapse",
+      statement:
+        "Earlier versions fell to approximately 0.46–0.48 V under load.",
+      elapsedSeconds: null,
+      sourceNote:
+        "User-reported historical range; the validated comparison run contains a 0.482 V reading at 60 seconds.",
+      provenance: "user_reported",
+    },
+    {
+      id: "reported-latest-sustained",
+      statement:
+        "The latest version sustains approximately 1.10 V under the same or a similar load.",
+      elapsedSeconds: null,
+      sourceNote:
+        "User-reported improvement; load equivalence and elapsed time remain unconfirmed.",
+      provenance: "user_reported",
+    },
+    {
+      id: "reported-tic-tac-format",
+      statement: "The latest cell uses an improvised Tic Tac container.",
+      elapsedSeconds: null,
+      sourceNote:
+        "User-reported format; its causal relationship to performance is unknown.",
+      provenance: "user_reported",
+    },
+  ],
+  imageObservations: [],
+  calculatedResults: [
+    {
+      id: "calculated-latest-drop",
+      name: "Open-circuit to reported loaded-voltage difference",
+      formula: "V(load) − V(open circuit)",
+      inputMeasurementIds: ["latest-voltage-ocv", "latest-voltage-loaded"],
+      value: -0.592,
+      unit: "V",
+      interpretation:
+        "The approximate loaded reading is 0.592 V below the fresh OCV; this arithmetic does not identify which construction change caused the improvement.",
+      provenance: "calculated",
+    },
+  ],
+  uncertainties: [
+    {
+      id: "latest-uncertainty-load",
+      description: "Load identity and current were not recorded.",
+      impact:
+        "The latest and older voltage values may reflect different demand.",
+      mitigation: "Use one characterized load and log synchronized current.",
+    },
+    {
+      id: "latest-uncertainty-time",
+      description:
+        "Elapsed time for the approximately 1.10 V reading is unknown.",
+      impact:
+        "The point cannot be placed honestly on a voltage-versus-time chart.",
+      mitigation:
+        "Use a fixed acquisition schedule beginning at load connection.",
+    },
+    {
+      id: "latest-uncertainty-hydration",
+      description:
+        "Electrolyte dose, placement, and cell hydration were not logged.",
+      impact: "Ionic wetting may differ between builds.",
+      mitigation: "Weigh electrolyte and the assembled cell before each test.",
+    },
+    {
+      id: "latest-uncertainty-cathode",
+      description:
+        "Cathode thickness, mass loading, and binder ratio were not logged.",
+      impact: "Reaction area and oxygen transport may have changed together.",
+      mitigation: "Measure thickness, dry mass, area, and recipe by batch.",
+    },
+    {
+      id: "latest-uncertainty-air",
+      description:
+        "Exposed cathode area and ambient airflow were not controlled.",
+      impact: "Oxygen availability may explain some or all of the gain.",
+      mitigation: "Use a measured air aperture and fixed orientation/airflow.",
+    },
+    {
+      id: "latest-uncertainty-contact",
+      description: "Contact resistance and fixture pressure were not measured.",
+      impact: "A connection improvement could raise loaded terminal voltage.",
+      mitigation: "Use fixed-pressure contacts and measure connection drops.",
+    },
+    {
+      id: "latest-uncertainty-replicates",
+      description: "The latest result is a single reported run.",
+      impact: "Reproducibility is unknown and causal attribution is premature.",
+      mitigation: "Build and test at least three matched latest-format cells.",
+    },
+  ],
+  hypotheses: latestHypotheses,
+  missingInformation: [
+    "Exact load identity, current, and power",
+    "Elapsed time of the approximately 1.10 V reading",
+    "Electrolyte dose, placement, hydration, and conditioning time",
+    "Cathode thickness, mass loading, binder ratio, porosity, and exposed air area",
+    "Contact materials, pressure, and resistance",
+    "Complete old-versus-latest construction change log",
+    "Matched replicate count",
+  ],
+  nextExperiments: latestNextExperiments,
+  hypothesisMatrix: {
+    observations: [
+      {
+        id: "matrix-latest-ocv",
+        label: "Latest OCV: 1.692 V",
+        description:
+          "The fresh latest-format cell measured 1.692 V at open circuit.",
+        status: "observed",
+        evidenceId: "latest-voltage-ocv",
+        measurementId: "latest-voltage-ocv",
+      },
+      {
+        id: "matrix-latest-loaded",
+        label: "Latest load: ~1.10 V",
+        description:
+          "The latest cell reportedly sustains approximately 1.10 V, but current and elapsed time were not recorded.",
+        status: "observed",
+        evidenceId: "latest-voltage-loaded",
+        measurementId: "latest-voltage-loaded",
+      },
+      {
+        id: "matrix-rapid-collapse",
+        label: "Older run: 0.482 V at 60 s",
+        description:
+          "A validated older run fell to 0.482 V after one minute under fan load.",
+        status: "observed",
+        evidenceId: "active-voltage-60s",
+        measurementId: null,
+      },
+      {
+        id: "matrix-controls-missing",
+        label: "Six causal controls missing",
+        description:
+          "Load current, hydration, cathode thickness, air exposure, contact resistance, and elapsed time were not matched or recorded.",
+        status: "observed",
+        evidenceId: null,
+        measurementId: null,
+      },
+    ],
+    cells: [
+      ...["matrix-latest-ocv", "matrix-controls-missing"].map(
+        (observationId) => ({
+          hypothesisId: "electrolyte-redistribution",
+          observationId,
+          effect:
+            observationId === "matrix-controls-missing"
+              ? ("unknown" as const)
+              : ("does_not_distinguish" as const),
+          rationale:
+            observationId === "matrix-controls-missing"
+              ? "Uncontrolled hydration prevents attribution to electrolyte distribution."
+              : "High OCV does not test ionic transport under load.",
+          evidenceIds:
+            observationId === "matrix-latest-ocv" ? ["latest-voltage-ocv"] : [],
+        }),
+      ),
+      ...["matrix-latest-loaded", "matrix-rapid-collapse"].map(
+        (observationId) => ({
+          hypothesisId: "electrolyte-redistribution",
+          observationId,
+          effect: "supports" as const,
+          rationale:
+            "The cross-build change is compatible with improved wetting, but it is not unique to that mechanism.",
+          evidenceIds:
+            observationId === "matrix-latest-loaded"
+              ? ["latest-voltage-loaded"]
+              : ["reported-prior-collapse"],
+        }),
+      ),
+      ...["matrix-latest-ocv", "matrix-controls-missing"].map(
+        (observationId) => ({
+          hypothesisId: "air-cathode-transport",
+          observationId,
+          effect:
+            observationId === "matrix-controls-missing"
+              ? ("unknown" as const)
+              : ("does_not_distinguish" as const),
+          rationale:
+            observationId === "matrix-controls-missing"
+              ? "Uncontrolled cathode thickness and air exposure prevent attribution to oxygen transport."
+              : "Open circuit places little oxygen demand on the cathode.",
+          evidenceIds:
+            observationId === "matrix-latest-ocv" ? ["latest-voltage-ocv"] : [],
+        }),
+      ),
+      ...["matrix-latest-loaded", "matrix-rapid-collapse"].map(
+        (observationId) => ({
+          hypothesisId: "air-cathode-transport",
+          observationId,
+          effect: "supports" as const,
+          rationale:
+            "The construction-sensitive loaded performance is compatible with changed oxygen access, but not diagnostic.",
+          evidenceIds:
+            observationId === "matrix-latest-loaded"
+              ? ["latest-voltage-loaded"]
+              : ["reported-prior-collapse"],
+        }),
+      ),
+      ...["matrix-latest-ocv"].map((observationId) => ({
+        hypothesisId: "electrical-contact",
+        observationId,
+        effect: "does_not_distinguish" as const,
+        rationale:
+          "Open-circuit voltage does not quantify resistance under current.",
+        evidenceIds: ["latest-voltage-ocv"],
+      })),
+      ...["matrix-latest-loaded", "matrix-rapid-collapse"].map(
+        (observationId) => ({
+          hypothesisId: "electrical-contact",
+          observationId,
+          effect: "supports" as const,
+          rationale:
+            "A construction change that improved the current path could explain the higher loaded terminal voltage.",
+          evidenceIds:
+            observationId === "matrix-latest-loaded"
+              ? ["latest-voltage-loaded"]
+              : ["reported-prior-collapse"],
+        }),
+      ),
+      {
+        hypothesisId: "electrical-contact",
+        observationId: "matrix-controls-missing",
+        effect: "unknown",
+        rationale: "Contact resistance was not measured in either build.",
+        evidenceIds: [],
+      },
+    ],
+    lastUpdateSummary:
+      "The latest result is encouraging but does not distinguish improved wetting, air-cathode transport, or electrical contact. Matched replicates and a one-factor rollback are required.",
+  },
+};
+
 export const demoDataset: DemoDataset = demoDatasetSchema.parse({
   id: "zinc-air-demo",
   name: "Zinc-air voltage divergence",
   description:
-    "Two reported zinc-air prototype runs with opposite loaded-voltage trajectories, structured as evidence rather than a claimed conclusion.",
-  activeRunId: activeRun.id,
-  comparisonRunId: earlierRun.id,
-  runs: [activeRun, earlierRun],
+    "A real latest zinc-air result compared with a validated earlier collapse, structured to preserve uncertainty and prevent premature causal attribution.",
+  activeRunId: latestRun.id,
+  comparisonRunId: activeRun.id,
+  runs: [latestRun, activeRun],
   comparison: {
-    id: "comparison-zinc-air-runs",
-    baselineRunId: earlierRun.id,
-    comparisonRunId: activeRun.id,
+    id: "comparison-latest-versus-collapse",
+    baselineRunId: activeRun.id,
+    comparisonRunId: latestRun.id,
     summary:
-      "The current run collapses over 60 seconds while the earlier run recovers over 30 minutes. Because load current and assembly details are missing, the comparison shifts hypothesis support but proves none of the mechanisms.",
+      "The latest cell measured 1.692 V open circuit and approximately 1.10 V under load, compared with an older run that reached 0.482 V after 60 seconds. Because load current, elapsed time, hydration, cathode thickness, air exposure, and contact resistance were not matched, the improvement is real evidence but not causal proof.",
     configurationDifferences: [
       {
         field: "Initial condition",
-        baselineValue: "Open-circuit voltage not recorded",
-        comparisonValue: "1.562 V open circuit",
+        baselineValue: "1.562 V open circuit",
+        comparisonValue: "1.692 V fresh open circuit",
         significance:
-          "The two runs cannot be normalized to the same measured starting state.",
+          "The latest cell began 0.130 V higher, but OCV alone does not predict loaded performance.",
       },
       {
-        field: "Observation window",
-        baselineValue: "1–30 minutes under an unspecified load",
-        comparisonValue: "0–60 seconds with a fan load",
+        field: "Loaded result and timing",
+        baselineValue: "0.482 V after 60 seconds with a fan load",
+        comparisonValue: "Approximately 1.10 V; elapsed time not recorded",
         significance:
-          "Different windows and potentially different loads confound direct trajectory comparison.",
+          "The latest loaded reading cannot be placed on the time chart or compared at a matched instant.",
       },
       {
-        field: "Separator",
+        field: "Measurement and load",
+        baselineValue: "Digital multimeter; fan current not recorded",
+        comparisonValue:
+          "Analog Devices Scopy; same or similar load, current not recorded",
+        significance:
+          "Instrument and demand equivalence must be established before quantitative attribution.",
+      },
+      {
+        field: "Construction",
         baselineValue:
-          "Reported prototype version: no conventional separator; exact run equivalence unconfirmed",
-        comparisonValue: "No conventional separator",
+          "Open hand-built prototype; no conventional separator reported",
+        comparisonValue:
+          "Improvised Tic Tac container; other changes not logged",
         significance:
-          "Both are nominally separator-free, but build-to-build spacing and wetting were not controlled.",
+          "Container geometry, hydration, cathode thickness, air exposure, and contact pressure may all have changed together.",
       },
     ],
     changedVariables: [
-      "Run/assembly identity",
-      "Recorded observation window",
-      "Known initial condition (OCV available only for current run)",
-      "Potential load identity, electrode wetting, airflow, and contact state — all uncontrolled or undocumented",
+      "Load current and load identity",
+      "Cell hydration and electrolyte dose",
+      "Cathode thickness, mass loading, and binder ratio",
+      "Exposed air area and airflow",
+      "Contact resistance and fixture pressure",
+      "Elapsed time under load",
     ],
     hypothesisSupportShifts: [
       {
         hypothesisId: "electrolyte-redistribution",
         direction: "gained",
         explanation:
-          "Opposite trajectories in nominally similar separator-free builds increase the plausibility of uncontrolled wetting or electrolyte geometry.",
-        evidenceIds: [
-          "active-voltage-60s",
-          "earlier-voltage-60s",
-          "earlier-voltage-1800s",
-        ],
+          "The build-to-build improvement is compatible with better electrolyte distribution, but hydration and dose were not recorded.",
+        evidenceIds: ["latest-voltage-loaded", "active-voltage-60s"],
       },
       {
         hypothesisId: "air-cathode-transport",
         direction: "gained",
         explanation:
-          "The divergence under load is also compatible with differing cathode flooding or air access, which were not recorded.",
+          "The Tic Tac-format construction may have changed cathode thickness or oxygen access, but neither was measured.",
         evidenceIds: [
+          "latest-voltage-loaded",
           "active-voltage-60s",
-          "earlier-voltage-1800s",
-          "image-irregular-cathode",
+          "reported-tic-tac-format",
         ],
       },
       {
         hypothesisId: "electrical-contact",
         direction: "uncertain",
         explanation:
-          "High OCV followed by collapse supports a series-resistance possibility, but the earlier smooth recovery is weaker evidence for an intermittent junction.",
-        evidenceIds: [
-          "active-voltage-ocv",
-          "active-voltage-60s",
-          "reported-smooth-recovery",
-        ],
+          "A better current path could raise loaded voltage, but no connection drop or fixture pressure was measured.",
+        evidenceIds: ["latest-voltage-loaded", "active-voltage-60s"],
       },
     ],
   },
   simulatedMatrixUpdate: {
-    id: "simulation-controlled-rewet",
+    id: "simulation-matched-replicates",
     label: "simulated",
-    title: "What if controlled rewetting restores the 60-second voltage?",
+    title: "What if three matched latest builds hold 1.10 V at 60 seconds?",
     measurement: {
-      id: "simulated-rewet-voltage-60s",
-      name: "Voltage after controlled electrolyte rewet",
-      value: 1.08,
+      id: "simulated-replicate-voltage-60s",
+      name: "Matched-replicate loaded voltage",
+      value: 1.1,
       unit: "V",
       elapsedSeconds: 60,
       label: "simulated",
       disclaimer:
-        "Illustrative outcome only—not measured, not part of either run, and excluded from all charts until a user records a real result.",
+        "Illustrative matched-replicate outcome only—not measured, not part of either run, and excluded from all charts.",
     },
     observation: {
-      id: "matrix-simulated-rewet-recovery",
-      label: "Simulated: rewet reaches 1.08 V",
+      id: "matrix-simulated-replicates",
+      label: "Simulated: 3 builds hold 1.10 V",
       description:
-        "SIMULATED OUTCOME: after a controlled electrolyte aliquot, loaded voltage is imagined to recover to 1.08 V at 60 seconds with fixed contacts and airflow.",
+        "SIMULATED OUTCOME: three matched Tic Tac-format cells each sustain approximately 1.10 V at 60 seconds under a characterized load with fixed-pressure contacts.",
       status: "planned",
       evidenceId: null,
-      measurementId: "simulated-rewet-voltage-60s",
+      measurementId: "simulated-replicate-voltage-60s",
     },
     cells: [
       {
         hypothesisId: "electrolyte-redistribution",
-        observationId: "matrix-simulated-rewet-recovery",
+        observationId: "matrix-simulated-replicates",
         effect: "supports",
         rationale:
-          "A reproducible response to controlled rewetting would directly support electrolyte distribution as causal.",
-        evidenceIds: ["simulated-rewet-voltage-60s"],
+          "Reproducibility with matched hydration would strengthen a stable wetting explanation, but would not isolate it from cathode construction.",
+        evidenceIds: ["simulated-replicate-voltage-60s"],
       },
       {
         hypothesisId: "air-cathode-transport",
-        observationId: "matrix-simulated-rewet-recovery",
-        effect: "does_not_distinguish",
+        observationId: "matrix-simulated-replicates",
+        effect: "supports",
         rationale:
-          "Added liquid can change both ionic wetting and cathode flooding, so rewetting alone does not isolate air transport.",
-        evidenceIds: ["simulated-rewet-voltage-60s"],
+          "Reproducibility with matched cathode thickness and exposed area would support a stable air-cathode construction, without proving oxygen transport is dominant.",
+        evidenceIds: ["simulated-replicate-voltage-60s"],
       },
       {
         hypothesisId: "electrical-contact",
-        observationId: "matrix-simulated-rewet-recovery",
+        observationId: "matrix-simulated-replicates",
         effect: "contradicts",
         rationale:
-          "With independently verified stable contacts, selective recovery after electrolyte dosing would weaken a contact-only mechanism.",
-        evidenceIds: ["simulated-rewet-voltage-60s"],
+          "Three repeatable trajectories with independently verified fixed contacts would weaken an intermittent-contact-only explanation.",
+        evidenceIds: ["simulated-replicate-voltage-60s"],
       },
     ],
     changeSummary:
-      "In this explicitly simulated outcome, electrolyte redistribution gains support, a contact-only explanation loses support, and air-cathode transport remains unresolved. A real matched replicate is still required.",
+      "In this explicitly simulated outcome, the improvement becomes reproducible and a contact-only explanation loses support, but wetting and air-cathode construction remain confounded. The real matched replicate is still required.",
   },
 });
 

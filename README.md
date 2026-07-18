@@ -55,7 +55,7 @@ flowchart LR
 Major areas:
 
 - `lib/domain/`: strict schemas, measurement parsing and ordering, chart/matrix derivations
-- `lib/demo/`: two validated zinc-air runs and the precomputed analysis envelope
+- `lib/demo/`: the latest real zinc-air run, an older validated collapse run, and the precomputed analysis envelope
 - `server/`: prompt versions and the guarded OpenAI SDK call
 - `app/api/analyze/`: server route, request parsing, typed errors, and abort handling
 - `app/`: responsive workflow, evidence surfaces, matrix, chart, report, and local persistence

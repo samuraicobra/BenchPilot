@@ -66,7 +66,7 @@ export const measurementSchema = z
     name: shortTextSchema,
     value: z.number().finite(),
     unit: shortTextSchema,
-    elapsedSeconds: z.number().finite().nonnegative(),
+    elapsedSeconds: z.number().finite().nonnegative().nullable(),
     capturedAt: z.string().datetime({ offset: true }).nullable(),
     method: textSchema,
     condition: textSchema,

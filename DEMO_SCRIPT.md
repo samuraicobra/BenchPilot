@@ -8,9 +8,9 @@
 
 ## 0:10–0:23 — Capture
 
-**Action:** Select **Load zinc-air demo**. Show the apparatus photo/preview, zinc-air configuration, and raw note.
+**Action:** Select **Load zinc-air demo**. Show the Tic Tac-container format, Scopy instrument, zinc-air configuration, and raw note.
 
-**Voiceover:** “This is a real zinc-air prototype: zinc anode, carbon and manganese-dioxide air cathode, acrylic binder, about 30% KOH, and no conventional separator. One run collapsed under a fan load. An earlier run recovered over time.”
+**Voiceover:** “This is a real zinc-air prototype. Older builds fell to about 0.48 volts under load. The newest Tic Tac-container build measures 1.692 volts fresh and about 1.10 under a similar load. The gain is promising—but which construction change caused it?”
 
 ## 0:23–0:37 — Structure
 
@@ -28,19 +28,19 @@
 
 **Action:** Bring the Hypothesis Matrix fully into view. Add or activate the prepared discriminating measurement. Pause on the changed cell and evidence-shift explanation.
 
-**Voiceover:** “Here is the key idea. Rows are hypotheses; columns are observations and planned measurements. A cell supports, contradicts, or does not distinguish. Add a new measurement, and the matrix updates—not with a new conclusion, but with a precise explanation of which hypothesis gained or lost support.”
+**Voiceover:** “Here is the key idea. Rows are hypotheses; columns are observations and planned measurements. Add a simulated matched-replicate result, and the matrix updates. Reproducibility would weaken a contact-only explanation, but it still would not separate wetting from air-cathode construction.”
 
 ## 1:10–1:25 — Test
 
 **Action:** Select **Test** and highlight the first-ranked experiment, controls, expected outcomes, and safety note.
 
-**Voiceover:** “BenchPilot ranks the next tests by information gained per unit effort. The top plan changes one variable, holds the others constant, specifies exact readings and stop conditions, and predicts a different result under each explanation.”
+**Voiceover:** “BenchPilot ranks the next tests by information gained per unit effort. Here, matched replication comes first. Only after the gain repeats does it recommend rolling back one construction variable at a time.”
 
 ## 1:25–1:40 — Compare
 
-**Action:** Select **Compare**. Trace the two lines on the voltage chart, then show configuration differences.
+**Action:** Select **Compare**. Show the validated chart, the unplotted-time note, and the causal-attribution warning.
 
-**Voiceover:** “Compare uses only validated measurements. The timeline and chart make the collapse and slow recovery unmistakable, while configuration differences and evidence shifts stay alongside the data.”
+**Voiceover:** “Compare uses only validated measurements. Because the latest loaded reading has no timestamp, BenchPilot lists it but refuses to invent a chart position. It then names the six controls required before claiming causation.”
 
 ## 1:40–1:45 — Close
 

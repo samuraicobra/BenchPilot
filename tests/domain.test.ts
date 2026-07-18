@@ -18,7 +18,7 @@ describe("structured-output validation", () => {
 
     expect(parsed.schemaVersion).toBe("1.0.0");
     expect(parsed.run.hypotheses).toHaveLength(3);
-    expect(parsed.run.measurements[0].provenance).toBe("user_reported");
+    expect(parsed.run.measurements[0].provenance).toBe("instrument_readout");
   });
 
   it("rejects incomplete and malformed model responses", () => {
@@ -105,6 +105,7 @@ describe("timeline ordering", () => {
         capturedAt: "2026-07-18T13:00:01.000Z",
       },
       { id: "first", elapsedSeconds: 0, capturedAt: null },
+      { id: "unknown-time", elapsedSeconds: null, capturedAt: null },
     ];
 
     expect(sortMeasurements(source).map(({ id }) => id)).toEqual([
@@ -112,12 +113,14 @@ describe("timeline ordering", () => {
       "same-a",
       "same-b",
       "later",
+      "unknown-time",
     ]);
     expect(source.map(({ id }) => id)).toEqual([
       "later",
       "same-b",
       "same-a",
       "first",
+      "unknown-time",
     ]);
   });
 });
@@ -162,12 +165,10 @@ describe("hypothesis matrix", () => {
       scenario.changeSummary,
     );
 
-    expect(updated.observations.at(-1)?.id).toBe(
-      "matrix-simulated-rewet-recovery",
-    );
+    expect(updated.observations.at(-1)?.id).toBe("matrix-simulated-replicates");
     expect(updated.cells.slice(-3).map(({ effect }) => effect)).toEqual([
       "supports",
-      "does_not_distinguish",
+      "supports",
       "contradicts",
     ]);
     expect(() =>

@@ -2,7 +2,7 @@
 
 **Turn messy physical experiments into reproducible evidence.**
 
-BenchPilot is a multimodal AI lab partner for independent inventors, makers, students, and small research teams. It takes the way experiments actually appear—photos, partial notes, readings, and a working theory—and turns them into a structured record, competing explanations, falsifiable next tests, and a visual comparison of runs. The flagship zinc-air case asks why voltage rose in one loaded run but collapsed in another.
+BenchPilot is a multimodal AI lab partner for independent inventors, makers, students, and small research teams. It takes the way experiments actually appear—photos, partial notes, readings, and a working theory—and turns them into a structured record, competing explanations, falsifiable next tests, and a visual comparison of runs. The flagship zinc-air case compares an older 0.482 V collapse with a latest Tic Tac-container build sustaining approximately 1.10 V, then asks which construction change mattered and whether the gain is reproducible.
 
 ## Technical implementation
 

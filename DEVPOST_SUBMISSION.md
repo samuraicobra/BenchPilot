@@ -6,7 +6,7 @@
 
 Important experiments rarely begin in a clean database. They begin on a workbench: a phone photo, a voltage scribbled in a notebook, an altered material that was not documented, and a theory formed while the result is still fresh. That is normal for independent inventors, student teams, makers, and small labs—but it makes results hard to reproduce and surprisingly easy to over-interpret.
 
-BenchPilot began with a real zinc-air battery question. One run fell from 1.562 V open circuit to 0.482 V after a minute under fan load. An earlier run moved in the opposite direction, rising from 0.912 V at one minute to 1.308 V at 30 minutes. Was the difference wetting, oxygen transport, contact resistance, electrolyte distribution, or something else? The useful answer was not a confident guess. It was a disciplined way to preserve the evidence, expose uncertainty, and choose the next measurement.
+BenchPilot began with a real zinc-air battery question. An older prototype fell from 1.562 V open circuit to 0.482 V after a minute under fan load. A newer improvised Tic Tac-container build measured 1.692 V fresh and approximately 1.10 V under the same or a similar load. Which construction change produced the improvement—and would another build repeat it? The useful answer was not a confident guess. It was a disciplined way to preserve the evidence, expose uncontrolled variables, and choose the next measurement.
 
 ## What it does
 

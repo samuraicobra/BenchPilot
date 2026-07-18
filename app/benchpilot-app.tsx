@@ -106,12 +106,13 @@ const stageDefinitions: Array<{
   { id: "compare", label: "Compare", description: "Runs + support shifts" },
 ];
 
-const zincAirNotes = `Open-circuit voltage: 1.562 V
-Fan load after 10 seconds: 0.732 V
-Fan load after 1 minute: 0.482 V
-Earlier run under load: 0.912 V at 1 minute, 1.13 V at 5 minutes, 1.253 V at 10 minutes, 1.298 V at 23 minutes, 1.308 V at 30 minutes
-Zinc anode; carbon and manganese-dioxide air cathode; acrylic binder; approximately 30% KOH electrolyte; no conventional separator.
-Question: Why did voltage rise during one run but collapse during another?`;
+const zincAirNotes = `Latest run open-circuit voltage: 1.692 V
+Latest loaded voltage: approximately 1.100 V; elapsed time and load current were not recorded
+Instrument: Analog Devices Scopy voltmeter
+Cell format: improvised Tic Tac container
+Zinc-air chemistry; approximately 30% KOH; activated-carbon and manganese-dioxide cathode with acrylic binder
+Earlier versions fell to approximately 0.46–0.48 V under the same or a similar load.
+Question: Which construction change produced the improvement, and is the gain reproducible?`;
 
 const provenanceLabels: Record<EvidenceProvenance, string> = {
   user_reported: "Reported fact",
@@ -168,7 +169,8 @@ function GlobalHeader({
   );
 }
 
-function formatDuration(seconds: number): string {
+function formatDuration(seconds: number | null): string {
+  if (seconds === null) return "Time not recorded";
   if (seconds === 0) return "Start";
   if (seconds < 60) return `${seconds}s`;
   if (seconds % 60 === 0) return `${seconds / 60}m`;
@@ -1288,6 +1290,19 @@ function CompareView({
   const hypothesisById = new Map(
     activeRun.hypotheses.map((item) => [item.id, item]),
   );
+  const comparedRuns = [comparisonRun, activeRun];
+  const plottedMeasurementCount = comparedRuns.flatMap((run) =>
+    run.measurements.filter(
+      (measurement) =>
+        measurement.unit === "V" && measurement.elapsedSeconds !== null,
+    ),
+  ).length;
+  const unplottedMeasurementCount = comparedRuns.flatMap((run) =>
+    run.measurements.filter(
+      (measurement) =>
+        measurement.unit === "V" && measurement.elapsedSeconds === null,
+    ),
+  ).length;
   return (
     <div className="panel-grid">
       <section className="surface col-12">
@@ -1295,17 +1310,18 @@ function CompareView({
           <div>
             <h2>Voltage vs. elapsed time</h2>
             <p>
-              All{" "}
-              {activeRun.measurements.length +
-                comparisonRun.measurements.length}{" "}
-              values below come from validated structured records.
+              All {plottedMeasurementCount} plotted values come from validated
+              structured records.
+              {unplottedMeasurementCount > 0
+                ? ` ${unplottedMeasurementCount} validated reading with unrecorded elapsed time is listed below but not plotted.`
+                : ""}
             </p>
           </div>
           <span className="chart-legend-note">
             <CircleDot size={12} /> No model-authored points
           </span>
         </div>
-        <VoltageChart runs={[comparisonRun, activeRun]} />
+        <VoltageChart runs={comparedRuns} />
       </section>
       <section className="surface col-7 surface-highlight">
         <div className="section-heading">
@@ -1316,6 +1332,22 @@ function CompareView({
           <Scale size={18} color="var(--amber)" />
         </div>
         <p className="compare-summary">{comparison.summary}</p>
+        <div
+          className="causal-warning"
+          role="note"
+          aria-label="Causal attribution warning"
+        >
+          <AlertTriangle size={19} aria-hidden="true" />
+          <div>
+            <strong>Causal attribution is not yet valid</strong>
+            <p>Control these before naming the winning construction change:</p>
+            <ul>
+              {comparison.changedVariables.map((variable) => (
+                <li key={variable}>{variable}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
         <div className="support-shifts" style={{ marginTop: 18 }}>
           {comparison.hypothesisSupportShifts.map((shift) => (
             <div

@@ -117,3 +117,14 @@ Append one entry after integration rather than rewriting earlier facts:
 - Secret audit: the repository scan found no API key, bearer token, or private credential pattern. `.env.local` is ignored and only the empty `.env.example` is tracked.
 - Deployment: Sites version 1 reached `succeeded` at 2026-07-18 15:30 UTC. Access remains owner-only/private as required by the default safe deployment path. The production authorization page rendered without console warnings; application-body smoke testing requires the owner to sign in.
 - Remaining known limitation: the strongest pre-submission improvement is to add a real prototype photograph and record one live GPT-5.6 run, then explicitly make the site public before judging if the owner approves that access change.
+
+### 2026-07-18 — Latest real zinc-air run integration
+
+- Replaced the default delayed-recovery comparison with the newest user-reported result: 1.692 V fresh OCV and approximately 1.10 V under the same or a similar load, measured with an Analog Devices Scopy voltmeter in an improvised Tic Tac-container cell.
+- Preserved the 1.562 V → 0.732 V → 0.482 V collapse as the validated baseline. The older long-recovery record remains exported as historical evidence but is no longer the default judge comparison.
+- Made measurement elapsed time nullable. The latest loaded reading has no supplied timestamp, sorts after timed readings, appears in the timeline/report, and is excluded from the voltage-versus-time chart rather than receiving an invented x-coordinate.
+- Added a prominent causal-attribution warning covering load current, hydration/electrolyte dose, cathode thickness/loading, exposed air area, contact resistance/fixture pressure, and elapsed time.
+- Re-ranked the next experiments: matched latest-build replication first, one-factor construction rollback second, and air-aperture crossover third.
+- Updated the Hypothesis Matrix and its simulated update to ask what changes if three matched latest builds sustain approximately 1.10 V at 60 seconds. The simulated outcome remains outside observed records and chart series.
+- Updated Devpost, judge, screenshot, recording-script, and recording-checklist copy to use the newest real evidence and to avoid carrying the old build's separator detail into the latest build without confirmation.
+- Final validation: formatting, ESLint, and strict TypeScript passed; `npm test` passed 17 domain/demo tests, 14 API/UI tests, and 2 rendered-build tests (33 total); the production build completed; production dependency audit reported zero vulnerabilities; the secret-pattern scan returned no matches.

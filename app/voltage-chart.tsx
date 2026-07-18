@@ -26,7 +26,10 @@ export function VoltageChart({ runs }: { runs: ExperimentRun[] }) {
     const voltages = runs.map((run) => ({
       run,
       readings: sortMeasurements(
-        run.measurements.filter((item) => item.unit === "V"),
+        run.measurements.filter(
+          (item): item is typeof item & { elapsedSeconds: number } =>
+            item.unit === "V" && item.elapsedSeconds !== null,
+        ),
       ),
     }));
     const times = [

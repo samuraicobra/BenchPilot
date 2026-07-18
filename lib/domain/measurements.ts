@@ -89,7 +89,9 @@ export function sortMeasurements<
   T extends Pick<Measurement, "elapsedSeconds" | "capturedAt" | "id">,
 >(measurements: readonly T[]): T[] {
   return [...measurements].sort((left, right) => {
-    const byElapsed = left.elapsedSeconds - right.elapsedSeconds;
+    const byElapsed =
+      (left.elapsedSeconds ?? Number.POSITIVE_INFINITY) -
+      (right.elapsedSeconds ?? Number.POSITIVE_INFINITY);
     if (byElapsed !== 0) return byElapsed;
     const byTimestamp = (left.capturedAt ?? "").localeCompare(
       right.capturedAt ?? "",
