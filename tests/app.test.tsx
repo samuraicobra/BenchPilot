@@ -11,6 +11,8 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BenchPilotApp } from "@/app/benchpilot-app";
+import { loadDemoAnalysis } from "@/lib/demo";
+import { ANALYSIS_API_CONTRACT_VERSION } from "@/lib/domain";
 
 describe("BenchPilot demo workflow", () => {
   beforeEach(() => {
@@ -21,6 +23,7 @@ describe("BenchPilot demo workflow", () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("loads the complete no-key demo and exposes all workflow stages", async () => {
@@ -84,5 +87,35 @@ describe("BenchPilot demo workflow", () => {
     expect(
       screen.getByText(/approximately 1\.10 V; elapsed time not recorded/i),
     ).toBeInTheDocument();
+  });
+  it("sends the current analysis contract version with live requests", async () => {
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(JSON.stringify({ analysis: loadDemoAnalysis() }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<BenchPilotApp />);
+    fireEvent.change(
+      screen.getByPlaceholderText(/paste readings, materials/i),
+      {
+        target: { value: "Open-circuit voltage was 1.62 V." },
+      },
+    );
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /analyze evidence/i }),
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const requestInit = fetchMock.mock.calls[0]?.[1];
+    expect(
+      new Headers(requestInit?.headers).get("x-benchpilot-contract-version"),
+    ).toBe(ANALYSIS_API_CONTRACT_VERSION);
   });
 });

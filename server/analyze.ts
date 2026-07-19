@@ -27,6 +27,7 @@ type AllowedImageMime = (typeof ANALYZE_LIMITS.allowedImageMimeTypes)[number];
 export type AnalysisErrorCode =
   | "INVALID_REQUEST"
   | "PAYLOAD_TOO_LARGE"
+  | "CLIENT_UPDATE_REQUIRED"
   | "MISSING_API_KEY"
   | "INVALID_API_KEY"
   | "MODEL_UNAVAILABLE"

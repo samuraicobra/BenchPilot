@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const ANALYSIS_API_CONTRACT_VERSION = "benchpilot.analysis-api.v2";
+
 const idSchema = z
   .string()
   .min(1)

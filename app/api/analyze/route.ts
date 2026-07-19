@@ -5,6 +5,8 @@ import {
   type AnalyzeResult,
 } from "@/server/analyze";
 
+import { ANALYSIS_API_CONTRACT_VERSION } from "@/lib/domain";
+
 export const runtime = "edge";
 
 export const ANALYZE_ROUTE_LIMITS = Object.freeze({
@@ -42,6 +44,7 @@ function jsonResponse(
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
       "x-content-type-options": "nosniff",
+      "x-benchpilot-contract-version": ANALYSIS_API_CONTRACT_VERSION,
       ...extraHeaders,
     },
   });
@@ -216,6 +219,19 @@ export function createAnalyzeHandler(
     dependencies.timeoutMs ?? ANALYZE_ROUTE_LIMITS.requestTimeoutMs;
 
   return async function handleAnalyze(request: Request): Promise<Response> {
+    if (
+      request.headers.get("x-benchpilot-contract-version") !==
+      ANALYSIS_API_CONTRACT_VERSION
+    ) {
+      return errorResponse(
+        new AnalysisError(
+          "CLIENT_UPDATE_REQUIRED",
+          "BenchPilot was updated. Refresh this page, then retry; your notes and images are still here.",
+          { status: 409 },
+        ),
+      );
+    }
+
     const rateLimit = rateLimiter.check(requestRateLimitKey(request));
     if (!rateLimit.allowed) {
       return errorResponse(

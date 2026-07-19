@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createAnalyzeHandler } from "@/app/api/analyze/route";
-import type { Analysis } from "@/lib/domain";
+import { ANALYSIS_API_CONTRACT_VERSION, type Analysis } from "@/lib/domain";
 import {
   AnalysisError,
   analyzeExperiment,
@@ -320,12 +320,46 @@ describe("analyzeExperiment", () => {
   });
 });
 
+function versionedAnalyzeRequest(init: RequestInit): Request {
+  const headers = new Headers(init.headers);
+  headers.set("x-benchpilot-contract-version", ANALYSIS_API_CONTRACT_VERSION);
+  return new Request("https://benchpilot.test/api/analyze", {
+    ...init,
+    headers,
+  });
+}
+
 describe("POST /api/analyze", () => {
-  it("returns a typed error for malformed JSON without calling analysis", async () => {
+  it("asks an unversioned stale client to refresh before analysis", async () => {
     const analyze = vi.fn();
     const handler = createAnalyzeHandler({ analyze });
     const response = await handler(
       new Request("https://benchpilot.test/api/analyze", {
+        method: "POST",
+        body: JSON.stringify({ notes: "A valid run." }),
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    expect(response.headers.get("x-benchpilot-contract-version")).toBe(
+      ANALYSIS_API_CONTRACT_VERSION,
+    );
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "CLIENT_UPDATE_REQUIRED",
+        message:
+          "BenchPilot was updated. Refresh this page, then retry; your notes and images are still here.",
+        retryable: false,
+      },
+    });
+    expect(analyze).not.toHaveBeenCalled();
+  });
+
+  it("returns a typed error for malformed JSON without calling analysis", async () => {
+    const analyze = vi.fn();
+    const handler = createAnalyzeHandler({ analyze });
+    const response = await handler(
+      versionedAnalyzeRequest({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: "{not-json",
@@ -343,7 +377,7 @@ describe("POST /api/analyze", () => {
     const analyze = vi.fn();
     const handler = createAnalyzeHandler({ analyze });
     const response = await handler(
-      new Request("https://benchpilot.test/api/analyze", {
+      versionedAnalyzeRequest({
         method: "POST",
         headers: { "content-length": String(22 * 1024 * 1024) },
         body: "{}",
@@ -367,7 +401,7 @@ describe("POST /api/analyze", () => {
     }));
     const handler = createAnalyzeHandler({ analyze });
     const response = await handler(
-      new Request("https://benchpilot.test/api/analyze", {
+      versionedAnalyzeRequest({
         method: "POST",
         body: JSON.stringify({ notes: "A valid run." }),
       }),
@@ -390,7 +424,7 @@ describe("POST /api/analyze", () => {
       }),
     });
     const response = await handler(
-      new Request("https://benchpilot.test/api/analyze", {
+      versionedAnalyzeRequest({
         method: "POST",
         body: JSON.stringify({ notes: "A valid run." }),
       }),
@@ -424,7 +458,7 @@ describe("POST /api/analyze", () => {
       },
     });
     const makeRequest = () =>
-      new Request("https://benchpilot.test/api/analyze", {
+      versionedAnalyzeRequest({
         method: "POST",
         body: JSON.stringify({ notes: "A valid run." }),
       });
@@ -454,7 +488,7 @@ describe("POST /api/analyze", () => {
       ),
     });
     const response = await handler(
-      new Request("https://benchpilot.test/api/analyze", {
+      versionedAnalyzeRequest({
         method: "POST",
         body: JSON.stringify({ notes: "A valid run." }),
       }),

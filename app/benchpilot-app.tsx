@@ -48,6 +48,7 @@ import {
 
 import {
   addMatrixObservation,
+  ANALYSIS_API_CONTRACT_VERSION,
   analysisSchema,
   buildHypothesisMatrix,
   experimentRunSchema,
@@ -1769,7 +1770,10 @@ export function BenchPilotApp() {
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-benchpilot-contract-version": ANALYSIS_API_CONTRACT_VERSION,
+        },
         body: JSON.stringify({
           notes,
           images: uploads.map((upload) => upload.dataUrl),
@@ -1786,7 +1790,9 @@ export function BenchPilotApp() {
         );
       const parsed = analysisSchema.safeParse(payload.analysis);
       if (!parsed.success)
-        throw new Error("The server returned an invalid structured result.");
+        throw new Error(
+          "This page is using an outdated experiment format. Refresh BenchPilot and retry; your notes and images are still here.",
+        );
       setRuns((current) => [
         parsed.data.run,
         ...current.filter((run) => run.id !== parsed.data.run.id),
