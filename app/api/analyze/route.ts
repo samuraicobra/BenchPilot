@@ -10,7 +10,7 @@ export const runtime = "edge";
 export const ANALYZE_ROUTE_LIMITS = Object.freeze({
   maxRequestsPerWindow: 8,
   rateLimitWindowMs: 60_000,
-  requestTimeoutMs: 65_000,
+  requestTimeoutMs: 120_000,
 });
 
 interface RateLimitResult {

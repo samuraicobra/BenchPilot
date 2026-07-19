@@ -245,7 +245,7 @@ function defaultClientFactory(apiKey: string): ResponsesClientPort {
   const client = new OpenAI({
     apiKey,
     maxRetries: 1,
-    timeout: 60_000,
+    timeout: 110_000,
   });
 
   return {
