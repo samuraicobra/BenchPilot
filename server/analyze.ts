@@ -28,11 +28,14 @@ export type AnalysisErrorCode =
   | "INVALID_REQUEST"
   | "PAYLOAD_TOO_LARGE"
   | "MISSING_API_KEY"
+  | "INVALID_API_KEY"
+  | "MODEL_UNAVAILABLE"
   | "MODEL_REFUSAL"
   | "EMPTY_MODEL_OUTPUT"
   | "MALFORMED_MODEL_OUTPUT"
   | "RATE_LIMITED"
   | "UPSTREAM_ERROR"
+  | "REQUEST_TIMEOUT"
   | "REQUEST_ABORTED";
 
 export class AnalysisError extends Error {
@@ -296,6 +299,17 @@ function normalizeUpstreamError(
     });
   }
 
+  if (
+    getErrorName(error) === "APIConnectionTimeoutError" ||
+    getErrorName(error) === "APITimeoutError"
+  ) {
+    return new AnalysisError(
+      "REQUEST_TIMEOUT",
+      "Live analysis took too long. Please retry with fewer or smaller images.",
+      { status: 504, retryable: true, cause: error },
+    );
+  }
+
   if (error instanceof ZodError || error instanceof SyntaxError) {
     return new AnalysisError(
       "MALFORMED_MODEL_OUTPUT",
@@ -305,6 +319,29 @@ function normalizeUpstreamError(
   }
 
   const upstreamStatus = getNumericProperty(error, "status");
+  const upstreamCode = getStringProperty(error, "code")?.toLowerCase();
+
+  if (upstreamStatus === 401) {
+    return new AnalysisError(
+      "INVALID_API_KEY",
+      "Live analysis credentials were rejected. Ask the site owner to update the server secret.",
+      { status: 503, cause: error },
+    );
+  }
+
+  if (
+    upstreamStatus === 404 ||
+    upstreamCode === "model_not_found" ||
+    upstreamCode === "invalid_model" ||
+    upstreamCode === "unsupported_model"
+  ) {
+    return new AnalysisError(
+      "MODEL_UNAVAILABLE",
+      "GPT-5.6 is not available to this API project. Check model access and try again.",
+      { status: 503, cause: error },
+    );
+  }
+
   if (upstreamStatus === 429) {
     return new AnalysisError(
       "RATE_LIMITED",
@@ -396,12 +433,14 @@ export async function analyzeExperiment(
   if (!apiKey?.trim()) {
     throw new AnalysisError(
       "MISSING_API_KEY",
-      "Live analysis is not configured. Use the zinc-air demo or configure OPENAI_API_KEY.",
+      "Live analysis is not configured. Use the zinc-air demo or ask the site owner to add the server credential.",
       { status: 503 },
     );
   }
 
   const model = dependencies.model ?? process.env.OPENAI_MODEL ?? "gpt-5.6";
+  // Construct the SDK client only after validation and the server-only
+  // environment check. This module is reachable exclusively from the API route.
   const client =
     dependencies.client ??
     (dependencies.createClient ?? defaultClientFactory)(apiKey);
@@ -457,13 +496,7 @@ export async function analyzeExperiment(
         response.status === "incomplete"
           ? "The analysis ended before a complete result was produced. Please retry."
           : "The model returned no structured result. Please retry.",
-        {
-          status: 502,
-          retryable: true,
-          details: response.incomplete_details?.reason
-            ? { reason: response.incomplete_details.reason }
-            : undefined,
-        },
+        { status: 502, retryable: true },
       );
     }
 
@@ -474,11 +507,7 @@ export async function analyzeExperiment(
       throw new AnalysisError(
         "MALFORMED_MODEL_OUTPUT",
         "The model returned an invalid structured result. Please retry.",
-        {
-          status: 502,
-          retryable: true,
-          details: { issues: publicValidationIssues(validated.error) },
-        },
+        { status: 502, retryable: true },
       );
     }
 

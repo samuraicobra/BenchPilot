@@ -363,7 +363,8 @@ function CapturePanel({
 
       <div className="capture-footer">
         <small>
-          Live analysis needs OPENAI_API_KEY. The complete demo does not.
+          Live analysis uses a server-only credential. The complete demo does
+          not.
         </small>
         {analysisState === "loading" ? (
           <div className="inline-actions">

@@ -140,6 +140,68 @@ describe("analyzeExperiment", () => {
     expect(serializedLog).not.toContain("test-key");
   });
 
+  it.each([
+    [401, undefined, "INVALID_API_KEY", 503],
+    [404, "model_not_found", "MODEL_UNAVAILABLE", 503],
+    [429, "rate_limit_exceeded", "RATE_LIMITED", 429],
+    [500, "server_error", "UPSTREAM_ERROR", 502],
+  ])(
+    "maps upstream status %s to the safe %s diagnostic",
+    async (status, code, expectedCode, expectedStatus) => {
+      const upstream = Object.assign(
+        new Error("provider detail must stay private"),
+        { status, code },
+      );
+      const client: ResponsesClientPort = {
+        responses: {
+          parse: vi.fn(async () => {
+            throw upstream;
+          }),
+        },
+      };
+      const logger = { error: vi.fn() };
+
+      await expect(
+        analyzeExperiment(
+          { notes: "private evidence" },
+          { dependencies: { apiKey: "test-key", client, logger } },
+        ),
+      ).rejects.toMatchObject({ code: expectedCode, status: expectedStatus });
+
+      expect(JSON.stringify(logger.error.mock.calls)).not.toContain(
+        "provider detail must stay private",
+      );
+    },
+  );
+
+  it("maps SDK connection timeouts to a safe timeout diagnostic", async () => {
+    const timeoutError = new Error("provider timeout detail");
+    timeoutError.name = "APIConnectionTimeoutError";
+    const client: ResponsesClientPort = {
+      responses: {
+        parse: vi.fn(async () => {
+          throw timeoutError;
+        }),
+      },
+    };
+    const logger = { error: vi.fn() };
+
+    await expect(
+      analyzeExperiment(
+        { notes: "private evidence" },
+        { dependencies: { apiKey: "test-key", client, logger } },
+      ),
+    ).rejects.toMatchObject({
+      code: "REQUEST_TIMEOUT",
+      status: 504,
+      retryable: true,
+    });
+
+    expect(JSON.stringify(logger.error.mock.calls)).not.toContain(
+      "provider timeout detail",
+    );
+  });
+
   it("surfaces a model refusal as a typed, non-retryable error", async () => {
     const client = clientReturning({
       output_parsed: null,
@@ -338,6 +400,71 @@ describe("POST /api/analyze", () => {
       error: {
         code: "RATE_LIMITED",
         message: "Please retry shortly.",
+        retryable: true,
+      },
+    });
+  });
+  it("rate limits repeated requests before analysis and returns Retry-After", async () => {
+    const analyze = vi.fn(async () => ({
+      analysis: validAnalysis,
+      meta: {
+        model: "gpt-5.6",
+        promptVersion: "benchpilot.analysis.v1" as const,
+      },
+    }));
+    let attempts = 0;
+    const handler = createAnalyzeHandler({
+      analyze,
+      rateLimiter: {
+        check: () => ({
+          allowed: ++attempts === 1,
+          retryAfterSeconds: 17,
+        }),
+      },
+    });
+    const makeRequest = () =>
+      new Request("https://benchpilot.test/api/analyze", {
+        method: "POST",
+        body: JSON.stringify({ notes: "A valid run." }),
+      });
+
+    expect((await handler(makeRequest())).status).toBe(200);
+    const limited = await handler(makeRequest());
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toBe("17");
+    await expect(limited.json()).resolves.toMatchObject({
+      error: { code: "RATE_LIMITED", retryable: true },
+    });
+    expect(analyze).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts long analysis and returns a safe timeout diagnostic", async () => {
+    const handler = createAnalyzeHandler({
+      timeoutMs: 5,
+      analyze: vi.fn(
+        async (_input, { signal }) =>
+          await new Promise<never>((_resolve, reject) => {
+            signal?.addEventListener(
+              "abort",
+              () => reject(new DOMException("Aborted", "AbortError")),
+              { once: true },
+            );
+          }),
+      ),
+    });
+    const response = await handler(
+      new Request("https://benchpilot.test/api/analyze", {
+        method: "POST",
+        body: JSON.stringify({ notes: "A valid run." }),
+      }),
+    );
+
+    expect(response.status).toBe(504);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "REQUEST_TIMEOUT",
+        message:
+          "Live analysis took too long. Please retry with fewer or smaller images.",
         retryable: true,
       },
     });

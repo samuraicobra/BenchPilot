@@ -7,22 +7,90 @@ import {
 
 export const runtime = "edge";
 
+export const ANALYZE_ROUTE_LIMITS = Object.freeze({
+  maxRequestsPerWindow: 8,
+  rateLimitWindowMs: 60_000,
+  requestTimeoutMs: 65_000,
+});
+
+interface RateLimitResult {
+  allowed: boolean;
+  retryAfterSeconds: number;
+}
+
+interface RateLimiter {
+  check(key: string): RateLimitResult;
+}
+
 interface AnalyzeHandlerDependencies {
   analyze?: (
     input: unknown,
     options: { signal?: AbortSignal },
   ) => Promise<AnalyzeResult>;
+  rateLimiter?: RateLimiter;
+  timeoutMs?: number;
 }
 
-function jsonResponse(body: unknown, status: number): Response {
+function jsonResponse(
+  body: unknown,
+  status: number,
+  extraHeaders: Record<string, string> = {},
+): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
       "x-content-type-options": "nosniff",
+      ...extraHeaders,
     },
   });
+}
+
+function createRateLimiter(
+  maxRequests = ANALYZE_ROUTE_LIMITS.maxRequestsPerWindow,
+  windowMs = ANALYZE_ROUTE_LIMITS.rateLimitWindowMs,
+): RateLimiter {
+  const buckets = new Map<string, { count: number; resetAt: number }>();
+
+  return {
+    check(key) {
+      const now = Date.now();
+
+      if (buckets.size > 5_000) {
+        for (const [bucketKey, bucket] of buckets) {
+          if (bucket.resetAt <= now) buckets.delete(bucketKey);
+        }
+      }
+
+      const current = buckets.get(key);
+      if (!current || current.resetAt <= now) {
+        buckets.set(key, { count: 1, resetAt: now + windowMs });
+        return { allowed: true, retryAfterSeconds: 0 };
+      }
+
+      if (current.count >= maxRequests) {
+        return {
+          allowed: false,
+          retryAfterSeconds: Math.max(
+            1,
+            Math.ceil((current.resetAt - now) / 1_000),
+          ),
+        };
+      }
+
+      current.count += 1;
+      return { allowed: true, retryAfterSeconds: 0 };
+    },
+  };
+}
+
+function requestRateLimitKey(request: Request): string {
+  return (
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "anonymous"
+  );
 }
 
 async function readLimitedJson(request: Request): Promise<unknown> {
@@ -105,6 +173,7 @@ async function readLimitedJson(request: Request): Promise<unknown> {
 
 function errorResponse(error: unknown): Response {
   if (error instanceof AnalysisError) {
+    const retryAfter = error.details?.retryAfterSeconds;
     return jsonResponse(
       {
         error: {
@@ -115,6 +184,9 @@ function errorResponse(error: unknown): Response {
         },
       },
       error.status,
+      typeof retryAfter === "number"
+        ? { "retry-after": String(retryAfter) }
+        : {},
     );
   }
 
@@ -139,14 +211,68 @@ export function createAnalyzeHandler(
   const analyze =
     dependencies.analyze ??
     ((input, options) => analyzeExperiment(input, options));
+  const rateLimiter = dependencies.rateLimiter ?? createRateLimiter();
+  const timeoutMs =
+    dependencies.timeoutMs ?? ANALYZE_ROUTE_LIMITS.requestTimeoutMs;
 
   return async function handleAnalyze(request: Request): Promise<Response> {
+    const rateLimit = rateLimiter.check(requestRateLimitKey(request));
+    if (!rateLimit.allowed) {
+      return errorResponse(
+        new AnalysisError(
+          "RATE_LIMITED",
+          "Too many analysis requests. Please retry shortly.",
+          {
+            status: 429,
+            retryable: true,
+            details: { retryAfterSeconds: rateLimit.retryAfterSeconds },
+          },
+        ),
+      );
+    }
+
+    const analysisController = new AbortController();
+    const abortFromRequest = () =>
+      analysisController.abort(request.signal.reason);
+    request.signal.addEventListener("abort", abortFromRequest, { once: true });
+
+    let timedOut = false;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_resolve, reject) => {
+      timeout = setTimeout(() => {
+        timedOut = true;
+        analysisController.abort();
+        reject(
+          new AnalysisError(
+            "REQUEST_TIMEOUT",
+            "Live analysis took too long. Please retry with fewer or smaller images.",
+            { status: 504, retryable: true },
+          ),
+        );
+      }, timeoutMs);
+    });
+
     try {
       const input = await readLimitedJson(request);
-      const result = await analyze(input, { signal: request.signal });
+      const result = await Promise.race([
+        analyze(input, { signal: analysisController.signal }),
+        timeoutPromise,
+      ]);
       return jsonResponse(result, 200);
     } catch (error) {
+      if (timedOut) {
+        return errorResponse(
+          new AnalysisError(
+            "REQUEST_TIMEOUT",
+            "Live analysis took too long. Please retry with fewer or smaller images.",
+            { status: 504, retryable: true },
+          ),
+        );
+      }
       return errorResponse(error);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+      request.signal.removeEventListener("abort", abortFromRequest);
     }
   };
 }
