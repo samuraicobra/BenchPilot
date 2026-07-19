@@ -449,6 +449,7 @@ export async function analyzeExperiment(
 
   const request = {
     model,
+    reasoning: { effort: "none" },
     instructions: ANALYSIS_SYSTEM_PROMPT,
     input: [
       {

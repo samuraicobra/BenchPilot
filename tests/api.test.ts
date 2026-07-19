@@ -297,6 +297,7 @@ describe("analyzeExperiment", () => {
     });
     expect(capturedRequest).toMatchObject({
       model: "gpt-5.6-test",
+      reasoning: { effort: "none" },
       store: false,
       input: [
         {
