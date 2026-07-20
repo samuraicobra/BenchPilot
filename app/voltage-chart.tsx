@@ -21,36 +21,38 @@ function formatDuration(seconds: number): string {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
 
-export function VoltageChart({ runs }: { runs: ExperimentRun[] }) {
-  const data = useMemo(() => {
-    const voltages = runs.map((run) => ({
-      run,
-      readings: sortMeasurements(
-        run.measurements.filter(
-          (item): item is typeof item & { elapsedSeconds: number } =>
-            item.unit === "V" && item.elapsedSeconds !== null,
-        ),
+export function buildVoltageChartData(runs: ExperimentRun[]) {
+  const voltages = runs.map((run) => ({
+    run,
+    readings: sortMeasurements(
+      run.measurements.filter(
+        (item): item is typeof item & { elapsedSeconds: number } =>
+          item.unit === "V" && item.elapsedSeconds !== null,
       ),
-    }));
-    const times = [
-      ...new Set(
-        voltages.flatMap(({ readings }) =>
-          readings.map((item) => item.elapsedSeconds),
-        ),
+    ),
+  }));
+  const times = [
+    ...new Set(
+      voltages.flatMap(({ readings }) =>
+        readings.map((item) => item.elapsedSeconds),
       ),
-    ].sort((a, b) => a - b);
+    ),
+  ].sort((a, b) => a - b);
 
-    return times.map((elapsedSeconds) => {
-      const point: Record<string, number> = { elapsedSeconds };
-      for (const { run, readings } of voltages) {
-        const reading = readings.find(
-          (item) => item.elapsedSeconds === elapsedSeconds,
-        );
-        if (reading) point[run.id] = reading.value;
-      }
-      return point;
-    });
-  }, [runs]);
+  return times.map((elapsedSeconds) => {
+    const point: Record<string, number> = { elapsedSeconds };
+    for (const { run, readings } of voltages) {
+      const reading = readings.find(
+        (item) => item.elapsedSeconds === elapsedSeconds,
+      );
+      if (reading) point[run.id] = reading.value;
+    }
+    return point;
+  });
+}
+
+export function VoltageChart({ runs }: { runs: ExperimentRun[] }) {
+  const data = useMemo(() => buildVoltageChartData(runs), [runs]);
   const colors = ["#3f7081", "#83ad62", "#b77933"];
 
   return (

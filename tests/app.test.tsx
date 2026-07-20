@@ -11,8 +11,6 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BenchPilotApp } from "@/app/benchpilot-app";
-import { loadDemoAnalysis } from "@/lib/demo";
-import { ANALYSIS_API_CONTRACT_VERSION } from "@/lib/domain";
 
 describe("BenchPilot demo workflow", () => {
   beforeEach(() => {
@@ -77,7 +75,7 @@ describe("BenchPilot demo workflow", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("note", { name: /causal attribution warning/i }),
-    ).toHaveTextContent(/load current/i);
+    ).toHaveTextContent(/fan current/i);
     expect(
       screen.getByRole("note", { name: /causal attribution warning/i }),
     ).toHaveTextContent(/cathode thickness/i);
@@ -88,34 +86,80 @@ describe("BenchPilot demo workflow", () => {
       screen.getByText(/approximately 1\.10 V; elapsed time not recorded/i),
     ).toBeInTheDocument();
   });
-  it("sends the current analysis contract version with live requests", async () => {
-    const fetchMock = vi.fn(
-      async (_input: RequestInfo | URL, _init?: RequestInit) =>
-        new Response(JSON.stringify({ analysis: loadDemoAnalysis() }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-    );
+  it("replays validated analysis without invoking fetch", async () => {
+    const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
     render(<BenchPilotApp />);
     fireEvent.change(
       screen.getByPlaceholderText(/paste readings, materials/i),
-      {
-        target: { value: "Open-circuit voltage was 1.62 V." },
-      },
+      { target: { value: "A".repeat(20_000) } },
     );
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /analyze evidence/i }),
-      );
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /replay demo analysis/i }),
+    );
+    await act(async () => vi.advanceTimersByTimeAsync(450));
 
-    const requestInit = fetchMock.mock.calls[0]?.[1];
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(
-      new Headers(requestInit?.headers).get("x-benchpilot-contract-version"),
-    ).toBe(ANALYSIS_API_CONTRACT_VERSION);
+      screen.getByText(/Build Week demo replay · validated GPT-5.6 evidence/i),
+    ).toBeInTheDocument();
+  });
+
+  it("supports arrow-key navigation through the workflow tabs", async () => {
+    render(<BenchPilotApp />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /load zinc-air demo/i }),
+    );
+    await act(async () => vi.advanceTimersByTimeAsync(450));
+
+    const capture = screen.getByRole("tab", { name: /capture/i });
+    capture.focus();
+    fireEvent.keyDown(capture, { key: "ArrowRight" });
+    await act(async () => vi.runAllTimersAsync());
+
+    const structure = screen.getByRole("tab", { name: /structure/i });
+    expect(structure).toHaveAttribute("aria-selected", "true");
+    expect(structure).toHaveFocus();
+  });
+
+  it("exports a report containing the displayed validated values", async () => {
+    const print = vi.fn();
+    vi.stubGlobal("print", print);
+    render(<BenchPilotApp />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /load zinc-air demo/i }),
+    );
+    await act(async () => vi.advanceTimersByTimeAsync(450));
+
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /experiment report|report/i })[0],
+    );
+    const report = screen.getByRole("dialog", {
+      name: /latest sustained output/i,
+    });
+    expect(report).toHaveTextContent("1.692 V");
+    expect(report).toHaveTextContent("1.1 V");
+    fireEvent.click(screen.getByRole("button", { name: /print \/ save PDF/i }));
+    expect(print).toHaveBeenCalledOnce();
+  });
+
+  it("shows the transient and calculation limits without overstating evidence", async () => {
+    render(<BenchPilotApp />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /load zinc-air demo/i }),
+    );
+    await act(async () => vi.advanceTimersByTimeAsync(450));
+    fireEvent.click(screen.getByRole("tab", { name: /structure/i }));
+
+    expect(screen.getByText(/minimum near -0\.460 V/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/not evidence of proven cell reversal/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /current, internal resistance, and output power cannot be calculated/i,
+      ),
+    ).toBeInTheDocument();
   });
 });

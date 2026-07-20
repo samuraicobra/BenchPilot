@@ -1,12 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createAnalyzeHandler } from "@/app/api/analyze/route";
-import { ANALYSIS_API_CONTRACT_VERSION, type Analysis } from "@/lib/domain";
-import {
-  AnalysisError,
-  analyzeExperiment,
-  type ResponsesClientPort,
-} from "@/server/analyze";
+import { GET, POST } from "@/app/api/analyze/route";
+import { type Analysis } from "@/lib/domain";
+import { analyzeExperiment, type ResponsesClientPort } from "@/server/analyze";
 
 const VALID_PNG_DATA_URL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -320,188 +316,26 @@ describe("analyzeExperiment", () => {
   });
 });
 
-function versionedAnalyzeRequest(init: RequestInit): Request {
-  const headers = new Headers(init.headers);
-  headers.set("x-benchpilot-contract-version", ANALYSIS_API_CONTRACT_VERSION);
-  return new Request("https://benchpilot.test/api/analyze", {
-    ...init,
-    headers,
-  });
-}
+describe("public POST /api/analyze", () => {
+  it("rejects direct paid-analysis requests without accepting evidence", async () => {
+    const response = await POST();
 
-describe("POST /api/analyze", () => {
-  it("asks an unversioned stale client to refresh before analysis", async () => {
-    const analyze = vi.fn();
-    const handler = createAnalyzeHandler({ analyze });
-    const response = await handler(
-      new Request("https://benchpilot.test/api/analyze", {
-        method: "POST",
-        body: JSON.stringify({ notes: "A valid run." }),
-      }),
-    );
-
-    expect(response.status).toBe(409);
-    expect(response.headers.get("x-benchpilot-contract-version")).toBe(
-      ANALYSIS_API_CONTRACT_VERSION,
-    );
+    expect(response.status).toBe(403);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     await expect(response.json()).resolves.toEqual({
       error: {
-        code: "CLIENT_UPDATE_REQUIRED",
+        code: "PUBLIC_DEMO_ONLY",
         message:
-          "BenchPilot was updated. Refresh this page, then retry; your notes and images are still here.",
+          "This public Build Week replay does not run paid analysis. Load the validated zinc-air demo to explore the complete workflow.",
         retryable: false,
       },
     });
-    expect(analyze).not.toHaveBeenCalled();
   });
-
-  it("returns a typed error for malformed JSON without calling analysis", async () => {
-    const analyze = vi.fn();
-    const handler = createAnalyzeHandler({ analyze });
-    const response = await handler(
-      versionedAnalyzeRequest({
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: "{not-json",
-      }),
-    );
-
-    expect(response.status).toBe(400);
+  it("returns the same safe diagnostic for direct GET requests", async () => {
+    const response = await GET();
+    expect(response.status).toBe(403);
     await expect(response.json()).resolves.toMatchObject({
-      error: { code: "INVALID_REQUEST", retryable: false },
-    });
-    expect(analyze).not.toHaveBeenCalled();
-  });
-
-  it("rejects a declared oversized request before reading it", async () => {
-    const analyze = vi.fn();
-    const handler = createAnalyzeHandler({ analyze });
-    const response = await handler(
-      versionedAnalyzeRequest({
-        method: "POST",
-        headers: { "content-length": String(22 * 1024 * 1024) },
-        body: "{}",
-      }),
-    );
-
-    expect(response.status).toBe(413);
-    await expect(response.json()).resolves.toMatchObject({
-      error: { code: "PAYLOAD_TOO_LARGE" },
-    });
-    expect(analyze).not.toHaveBeenCalled();
-  });
-
-  it("serializes successful validated analysis with no-store headers", async () => {
-    const analyze = vi.fn(async () => ({
-      analysis: validAnalysis,
-      meta: {
-        model: "gpt-5.6",
-        promptVersion: "benchpilot.analysis.v1" as const,
-      },
-    }));
-    const handler = createAnalyzeHandler({ analyze });
-    const response = await handler(
-      versionedAnalyzeRequest({
-        method: "POST",
-        body: JSON.stringify({ notes: "A valid run." }),
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("cache-control")).toBe("no-store");
-    await expect(response.json()).resolves.toMatchObject({
-      analysis: validAnalysis,
-    });
-  });
-
-  it("preserves typed service error status and code", async () => {
-    const handler = createAnalyzeHandler({
-      analyze: vi.fn(async () => {
-        throw new AnalysisError("RATE_LIMITED", "Please retry shortly.", {
-          status: 429,
-          retryable: true,
-        });
-      }),
-    });
-    const response = await handler(
-      versionedAnalyzeRequest({
-        method: "POST",
-        body: JSON.stringify({ notes: "A valid run." }),
-      }),
-    );
-
-    expect(response.status).toBe(429);
-    await expect(response.json()).resolves.toEqual({
-      error: {
-        code: "RATE_LIMITED",
-        message: "Please retry shortly.",
-        retryable: true,
-      },
-    });
-  });
-  it("rate limits repeated requests before analysis and returns Retry-After", async () => {
-    const analyze = vi.fn(async () => ({
-      analysis: validAnalysis,
-      meta: {
-        model: "gpt-5.6",
-        promptVersion: "benchpilot.analysis.v1" as const,
-      },
-    }));
-    let attempts = 0;
-    const handler = createAnalyzeHandler({
-      analyze,
-      rateLimiter: {
-        check: () => ({
-          allowed: ++attempts === 1,
-          retryAfterSeconds: 17,
-        }),
-      },
-    });
-    const makeRequest = () =>
-      versionedAnalyzeRequest({
-        method: "POST",
-        body: JSON.stringify({ notes: "A valid run." }),
-      });
-
-    expect((await handler(makeRequest())).status).toBe(200);
-    const limited = await handler(makeRequest());
-    expect(limited.status).toBe(429);
-    expect(limited.headers.get("retry-after")).toBe("17");
-    await expect(limited.json()).resolves.toMatchObject({
-      error: { code: "RATE_LIMITED", retryable: true },
-    });
-    expect(analyze).toHaveBeenCalledTimes(1);
-  });
-
-  it("aborts long analysis and returns a safe timeout diagnostic", async () => {
-    const handler = createAnalyzeHandler({
-      timeoutMs: 5,
-      analyze: vi.fn(
-        async (_input, { signal }) =>
-          await new Promise<never>((_resolve, reject) => {
-            signal?.addEventListener(
-              "abort",
-              () => reject(new DOMException("Aborted", "AbortError")),
-              { once: true },
-            );
-          }),
-      ),
-    });
-    const response = await handler(
-      versionedAnalyzeRequest({
-        method: "POST",
-        body: JSON.stringify({ notes: "A valid run." }),
-      }),
-    );
-
-    expect(response.status).toBe(504);
-    await expect(response.json()).resolves.toEqual({
-      error: {
-        code: "REQUEST_TIMEOUT",
-        message:
-          "Live analysis took too long. Please retry with fewer or smaller images.",
-        retryable: true,
-      },
+      error: { code: "PUBLIC_DEMO_ONLY", retryable: false },
     });
   });
 });

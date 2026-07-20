@@ -21,7 +21,6 @@ import {
   ImagePlus,
   Info,
   Lightbulb,
-  LoaderCircle,
   Microscope,
   Minus,
   Plus,
@@ -33,7 +32,6 @@ import {
   TestTube2,
   Variable,
   X,
-  XCircle,
   Zap,
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -48,8 +46,6 @@ import {
 
 import {
   addMatrixObservation,
-  ANALYSIS_API_CONTRACT_VERSION,
-  analysisSchema,
   buildHypothesisMatrix,
   experimentRunSchema,
   sortMeasurements,
@@ -112,6 +108,8 @@ Latest loaded voltage: approximately 1.100 V; elapsed time and load current were
 Instrument: Analog Devices Scopy voltmeter
 Cell format: improvised Tic Tac container
 Zinc-air chemistry; approximately 30% KOH; activated-carbon and manganese-dioxide cathode with acrylic binder
+Zinc anode; stainless-steel mesh support; no conventional separator in this version
+Scopy screenshot minimum: -0.460 V; uncertain transient, not proven cell reversal
 Earlier versions fell to approximately 0.46–0.48 V under the same or a similar load.
 Question: Which construction change produced the improvement, and is the gain reproducible?`;
 
@@ -147,7 +145,7 @@ function GlobalHeader({
       <Brand />
       <div className="header-actions">
         <span className="mode-pill">
-          <span className="mode-dot" /> Demo ready · live optional
+          <span className="mode-dot" /> Public Build Week replay · no paid API
         </span>
         {hasRun ? (
           <>
@@ -211,9 +209,7 @@ function CapturePanel({
   setNotes,
   uploads,
   setUploads,
-  analysisState,
   onAnalyze,
-  onCancel,
   onNotice,
   compact = false,
 }: {
@@ -221,9 +217,7 @@ function CapturePanel({
   setNotes: (value: string) => void;
   uploads: UploadImage[];
   setUploads: (value: UploadImage[]) => void;
-  analysisState: "idle" | "loading";
   onAnalyze: () => void;
-  onCancel: () => void;
   onNotice: (notice: Notice) => void;
   compact?: boolean;
 }) {
@@ -282,7 +276,7 @@ function CapturePanel({
           </p>
         </div>
         <span className="mini-badge">
-          <Sparkles size={12} /> GPT-5.6
+          <Sparkles size={12} /> GPT-5.6 replay
         </span>
       </div>
 
@@ -364,23 +358,12 @@ function CapturePanel({
 
       <div className="capture-footer">
         <small>
-          Live analysis uses a server-only credential. The complete demo does
-          not.
+          Your notes and selected images stay in this browser. Replay loads the
+          validated Build Week fixture and makes no API request.
         </small>
-        {analysisState === "loading" ? (
-          <div className="inline-actions">
-            <button className="button button-danger" onClick={onCancel}>
-              <XCircle size={15} /> Cancel
-            </button>
-            <button className="button button-primary loading-button" disabled>
-              <LoaderCircle size={16} /> Structuring evidence…
-            </button>
-          </div>
-        ) : (
-          <button className="button button-primary" onClick={onAnalyze}>
-            Analyze evidence <ArrowRight size={16} />
-          </button>
-        )}
+        <button className="button button-primary" onClick={onAnalyze}>
+          Replay demo analysis <ArrowRight size={16} />
+        </button>
       </div>
     </section>
   );
@@ -393,9 +376,7 @@ function Landing({
   setNotes,
   uploads,
   setUploads,
-  analysisState,
   onAnalyze,
-  onCancel,
   onNotice,
 }: {
   onLoadDemo: () => void;
@@ -404,9 +385,7 @@ function Landing({
   setNotes: (value: string) => void;
   uploads: UploadImage[];
   setUploads: (value: UploadImage[]) => void;
-  analysisState: "idle" | "loading";
   onAnalyze: () => void;
-  onCancel: () => void;
   onNotice: (notice: Notice) => void;
 }) {
   if (isLoadingDemo) {
@@ -434,9 +413,17 @@ function Landing({
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">
-            <CircleDot size={14} /> Multimodal evidence workspace
+            <CircleDot size={14} /> Public Build Week demo · validated replay
           </p>
           <h1>Messy experiment. Clear next move.</h1>
+          <div className="replay-banner" role="note">
+            <ShieldAlert size={16} aria-hidden="true" />
+            <span>
+              <strong>Build Week demo replay</strong> — structured from a real
+              zinc-air experiment using GPT-5.6. Live analysis is disabled on
+              this public deployment.
+            </span>
+          </div>
           <p className="hero-lede">
             BenchPilot turns photos, readings, and rough notes into a
             reproducible record—then challenges your interpretation before it
@@ -452,7 +439,7 @@ function Landing({
                 document.getElementById("experiment-notes")?.focus()
               }
             >
-              Capture my experiment <ArrowRight size={16} />
+              Inspect the captured evidence <ArrowRight size={16} />
             </button>
           </div>
           <div
@@ -495,9 +482,7 @@ function Landing({
           setNotes={setNotes}
           uploads={uploads}
           setUploads={setUploads}
-          analysisState={analysisState}
           onAnalyze={onAnalyze}
-          onCancel={onCancel}
           onNotice={onNotice}
         />
       </section>
@@ -512,6 +497,33 @@ function WorkflowNav({
   stage: Stage;
   onStage: (stage: Stage) => void;
 }) {
+  function moveStage(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const keys = [
+      "ArrowDown",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowLeft",
+      "Home",
+      "End",
+    ];
+    if (!keys.includes(event.key)) return;
+    event.preventDefault();
+    const last = stageDefinitions.length - 1;
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? last
+          : event.key === "ArrowDown" || event.key === "ArrowRight"
+            ? (index + 1) % stageDefinitions.length
+            : (index - 1 + stageDefinitions.length) % stageDefinitions.length;
+    const nextStage = stageDefinitions[nextIndex];
+    onStage(nextStage.id);
+    requestAnimationFrame(() =>
+      document.getElementById(`tab-${nextStage.id}`)?.focus(),
+    );
+  }
+
   return (
     <nav className="workflow-nav" aria-label="Experiment workflow">
       <p className="workflow-nav-label">Investigation flow</p>
@@ -525,6 +537,7 @@ function WorkflowNav({
             aria-selected={stage === definition.id}
             aria-controls={`panel-${definition.id}`}
             onClick={() => onStage(definition.id)}
+            onKeyDown={(event) => moveStage(event, index)}
           >
             <span className="stage-number">0{index + 1}</span>
             <span className="stage-copy">
@@ -553,11 +566,9 @@ function WorkflowNav({
 
 function WorkspaceHeader({
   stage,
-  run,
   onReport,
 }: {
   stage: Stage;
-  run: ExperimentRun;
   onReport: () => void;
 }) {
   const definition =
@@ -566,9 +577,7 @@ function WorkspaceHeader({
     <div className="workspace-topline">
       <div>
         <p className="run-kicker">
-          {run.sourceMode === "demo"
-            ? "Zinc-air investigation · seeded evidence"
-            : "Live analysis"}
+          Build Week demo replay · validated GPT-5.6 evidence
         </p>
         <h1 className="page-title">{definition.label}</h1>
         <p className="workspace-description">
@@ -610,9 +619,7 @@ function CaptureView(props: {
   setNotes: (value: string) => void;
   uploads: UploadImage[];
   setUploads: (value: UploadImage[]) => void;
-  analysisState: "idle" | "loading";
   onAnalyze: () => void;
-  onCancel: () => void;
   onNotice: (notice: Notice) => void;
 }) {
   const { run, ...captureProps } = props;
@@ -839,6 +846,9 @@ function StructureView({ run }: { run: ExperimentRun }) {
                   <li key={item.id}>
                     {item.statement}{" "}
                     <span className="muted">({item.confidence})</span>
+                    <span className="observation-limit">
+                      {item.limitations}
+                    </span>
                   </li>
                 ))
               ) : (
@@ -892,7 +902,7 @@ function StructureView({ run }: { run: ExperimentRun }) {
               <p>{item.impact}</p>
             </div>
           ))}
-          {run.missingInformation.slice(0, 3).map((item, index) => (
+          {run.missingInformation.map((item, index) => (
             <div className="warning-card" key={`${item}-${index}`}>
               <strong>Missing information</strong>
               <p>{item}</p>
@@ -1272,10 +1282,12 @@ function CompareView({
   activeRun,
   comparisonRun,
   comparison,
+  additionalRuns,
 }: {
   activeRun: ExperimentRun;
   comparisonRun: ExperimentRun | null;
   comparison: RunComparison | null;
+  additionalRuns: ExperimentRun[];
 }) {
   if (!comparisonRun || !comparison) {
     return (
@@ -1292,7 +1304,7 @@ function CompareView({
   const hypothesisById = new Map(
     activeRun.hypotheses.map((item) => [item.id, item]),
   );
-  const comparedRuns = [comparisonRun, activeRun];
+  const comparedRuns = [comparisonRun, ...additionalRuns, activeRun];
   const plottedMeasurementCount = comparedRuns.flatMap((run) =>
     run.measurements.filter(
       (measurement) =>
@@ -1417,8 +1429,11 @@ function CompareView({
           <Clock3 size={18} color="var(--zinc)" />
         </div>
         <div className="panel-grid">
-          {[comparisonRun, activeRun].map((run) => (
-            <div className="col-6" key={run.id}>
+          {comparedRuns.map((run) => (
+            <div
+              className={comparedRuns.length === 3 ? "col-4" : "col-6"}
+              key={run.id}
+            >
               <h4 style={{ margin: "0 0 8px" }}>{run.title}</h4>
               <div className="timeline">
                 {sortMeasurements(run.measurements).map((measurement) => (
@@ -1644,13 +1659,9 @@ export function BenchPilotApp() {
   );
   const [notes, setNotes] = useState("");
   const [uploads, setUploads] = useState<UploadImage[]>([]);
-  const [analysisState, setAnalysisState] = useState<"idle" | "loading">(
-    "idle",
-  );
   const [isLoadingDemo, setIsLoadingDemo] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [showReport, setShowReport] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
   const restoredRef = useRef(false);
 
   const activeRun =
@@ -1730,13 +1741,12 @@ export function BenchPilotApp() {
         tone: "success",
         title: "Zinc-air investigation loaded",
         message:
-          "Two validated runs, three competing hypotheses, and a ranked test plan are ready.",
+          "Three validated runs, three competing hypotheses, and a ranked test plan are ready.",
       });
     }, 420);
   }
 
   function startFresh() {
-    abortRef.current?.abort();
     setRuns([]);
     setActiveRunId(null);
     setComparisonRunId(null);
@@ -1752,83 +1762,6 @@ export function BenchPilotApp() {
       title: "Fresh workspace",
       message: "Local experiment records were cleared from this browser.",
     });
-  }
-
-  async function analyzeLive() {
-    if (!notes.trim()) {
-      setNotice({
-        tone: "error",
-        title: "Add experiment notes",
-        message:
-          "Include at least one reported reading or observation before live analysis.",
-      });
-      return;
-    }
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setAnalysisState("loading");
-    try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-benchpilot-contract-version": ANALYSIS_API_CONTRACT_VERSION,
-        },
-        body: JSON.stringify({
-          notes,
-          images: uploads.map((upload) => upload.dataUrl),
-        }),
-        signal: controller.signal,
-      });
-      const payload = (await response.json()) as {
-        analysis?: unknown;
-        error?: { message?: string; code?: string };
-      };
-      if (!response.ok)
-        throw new Error(
-          payload.error?.message ?? "Live analysis could not be completed.",
-        );
-      const parsed = analysisSchema.safeParse(payload.analysis);
-      if (!parsed.success)
-        throw new Error(
-          "This page is using an outdated experiment format. Refresh BenchPilot and retry; your notes and images are still here.",
-        );
-      setRuns((current) => [
-        parsed.data.run,
-        ...current.filter((run) => run.id !== parsed.data.run.id),
-      ]);
-      setActiveRunId(parsed.data.run.id);
-      setComparisonRunId(null);
-      setComparison(null);
-      setUpdateScenario(null);
-      setMatrixOverride(null);
-      setStage("structure");
-      setNotice({
-        tone: "success",
-        title: "Evidence structured",
-        message: "The validated GPT-5.6 result is ready for review.",
-      });
-    } catch (error) {
-      if (controller.signal.aborted) {
-        setNotice({
-          tone: "info",
-          title: "Analysis cancelled",
-          message: "Your notes and selected images are still here.",
-        });
-      } else {
-        setNotice({
-          tone: "error",
-          title: "Live analysis unavailable",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Use the complete zinc-air demo while live mode is unavailable.",
-        });
-      }
-    } finally {
-      setAnalysisState("idle");
-      abortRef.current = null;
-    }
   }
 
   function applyMatrixUpdate() {
@@ -1874,9 +1807,7 @@ export function BenchPilotApp() {
           setNotes={setNotes}
           uploads={uploads}
           setUploads={setUploads}
-          analysisState={analysisState}
-          onAnalyze={() => void analyzeLive()}
-          onCancel={() => abortRef.current?.abort()}
+          onAnalyze={loadDemo}
           onNotice={setNotice}
         />
       ) : (
@@ -1890,7 +1821,6 @@ export function BenchPilotApp() {
           >
             <WorkspaceHeader
               stage={stage}
-              run={activeRun}
               onReport={() => setShowReport(true)}
             />
             {stage === "capture" ? (
@@ -1900,9 +1830,7 @@ export function BenchPilotApp() {
                 setNotes={setNotes}
                 uploads={uploads}
                 setUploads={setUploads}
-                analysisState={analysisState}
-                onAnalyze={() => void analyzeLive()}
-                onCancel={() => abortRef.current?.abort()}
+                onAnalyze={loadDemo}
                 onNotice={setNotice}
               />
             ) : null}
@@ -1921,6 +1849,10 @@ export function BenchPilotApp() {
                 activeRun={activeRun}
                 comparisonRun={comparisonRun}
                 comparison={comparison}
+                additionalRuns={runs.filter(
+                  (run) =>
+                    run.id !== activeRun.id && run.id !== comparisonRun?.id,
+                )}
               />
             ) : null}
           </main>

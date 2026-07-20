@@ -2,13 +2,13 @@
 
 **Turn messy physical experiments into reproducible evidence.**
 
-BenchPilot is a multimodal AI lab partner for independent inventors, makers, students, and small research teams. It takes the way experiments actually appear—photos, partial notes, readings, and a working theory—and turns them into a structured record, competing explanations, falsifiable next tests, and a visual comparison of runs. The flagship zinc-air case compares an older 0.482 V collapse with a latest Tic Tac-container build sustaining approximately 1.10 V, then asks which construction change mattered and whether the gain is reproducible.
+BenchPilot is a multimodal AI lab partner for independent inventors, makers, students, and small research teams. It takes the way experiments actually appear—photos, partial notes, readings, and a working theory—and turns them into a structured record, competing explanations, falsifiable next tests, and a visual comparison of runs. The flagship zinc-air case compares an older 0.482 V collapse, a separate rise to 1.308 V, and a latest Tic Tac-container build sustaining approximately 1.10 V, then asks which construction change mattered and whether the gain is reproducible.
 
 ## Technical implementation
 
-BenchPilot is built with strict TypeScript, React, a Next.js-compatible App Router on Vinext/Vite/Cloudflare, Zod, Recharts, and the official OpenAI JavaScript SDK. GPT-5.6 is accessed only through a server-side Responses API route; the API key is never sent to the browser. Notes and images are delimited as untrusted experimental evidence, and versioned prompts request schema-constrained output. A second runtime validation gate prevents malformed or incomplete model data from entering UI state.
+BenchPilot is built with strict TypeScript, React, a Next.js-compatible App Router on Vinext/Vite/Cloudflare, Zod, Recharts, and the official OpenAI JavaScript SDK. The preserved private build accesses GPT-5.6 only through a server-side Responses API route; the API key is never sent to the browser. The separate public judge build has no secret and hard-rejects direct analysis requests before reading evidence or importing the live service. Notes and images are delimited as untrusted experimental evidence, and versioned prompts request schema-constrained output. A second runtime validation gate prevents malformed or incomplete model data from entering UI state.
 
-The scientific visualizations are deterministic. Timelines sort validated timestamps; the voltage chart reads validated measurement values; matrix cells reference stable hypothesis and evidence IDs. The seeded no-key demo passes through the same schemas and derivation utilities as live output. Local browser persistence keeps the contest build deployable without accounts or a database.
+The scientific visualizations are deterministic. Timelines sort validated timestamps; the voltage chart reads validated measurement values; matrix cells reference stable hypothesis and evidence IDs. The three-run public replay passes through the same schemas and derivation utilities as live output. Local browser persistence keeps the contest build deployable without accounts or a database.
 
 ## Design and user experience
 

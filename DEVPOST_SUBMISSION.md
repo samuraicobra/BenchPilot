@@ -26,9 +26,9 @@ BenchPilot never presents a hypothesis as a proven conclusion. Reported facts, v
 
 BenchPilot uses strict TypeScript, React, a Next.js-compatible App Router on the Vinext/Vite/Cloudflare runtime, Tailwind CSS, Zod, Recharts, and the official OpenAI JavaScript SDK.
 
-The AI boundary is server-side. A guarded analysis route sends untrusted notes and images to the OpenAI Responses API and requests schema-constrained output from GPT-5.6. Versioned prompts explicitly treat uploaded content as experimental evidence, never as instructions. Model output is parsed again with the same runtime schema before it can enter application state. Malformed responses become typed errors, not half-rendered records.
+The live AI boundary is server-side. In the preserved private deployment, a guarded route sends untrusted notes and images to the OpenAI Responses API and requests schema-constrained output from GPT-5.6. Versioned prompts treat uploads as evidence, never instructions, and a second parse rejects malformed output. The public Build Week deployment is intentionally different: it contains no API secret, imports no live service in its route, and returns a safe `PUBLIC_DEMO_ONLY` response to every direct analysis request.
 
-Charts, timelines, and the Hypothesis Matrix are deterministic. They consume validated measurements and stable evidence IDs rather than asking the model to draw or invent relationships at render time. A precomputed zinc-air dataset passes through the same validation and derivation path as live analysis, so the complete demonstration remains available without an API key or network connection. Contest records persist locally in the browser; no account or database is required.
+Charts, timelines, and the Hypothesis Matrix are deterministic. They consume validated measurements and stable evidence IDs rather than asking the model to draw or invent relationships at render time. A precomputed zinc-air dataset—with the latest run, the rapid-collapse run, and the delayed-recovery run—passes through the same validation and derivation path as live analysis, so the complete public demonstration needs no API key, paid request, or model latency. Contest records persist locally in the browser; no account or database is required.
 
 ## Thoughtful use of GPT-5.6
 
@@ -46,7 +46,7 @@ The most useful part was iteration across layers. A scientific-labeling concern 
 
 The central challenge was epistemic, not cosmetic: how do we make AI assistance rigorous without implying that fluent reasoning is experimental proof? We solved this by separating evidence categories in both the data model and interface, linking matrix judgments to stable observation IDs, requiring falsifiers, and retaining unknowns beside every hypothesis.
 
-The second challenge was reliability. A short judging session cannot depend on a secret, a model response, or network latency. The seeded zinc-air case therefore exercises the full product with prevalidated, realistic results. Live analysis is an enhancement, not a prerequisite for understanding the idea.
+The second challenge was reliability. A short judging session cannot depend on a secret, a model response, or network latency. The public zinc-air replay therefore exercises the full product with prevalidated results while hard-disabling paid inference. Genuine live analysis remains available only in the separate owner-restricted deployment.
 
 The third challenge was density. Experiments contain many fields, but the main journey had to be legible in under two minutes. The five-stage workflow, progressive disclosure, concise evidence cards, and matrix-centered story keep attention on the scientific decision.
 
@@ -56,7 +56,7 @@ The third challenge was density. Experiments contain many fields, but the main j
 - A typed provenance model that keeps user facts, visual observations, calculations, uncertainty, and hypotheses distinct.
 - A Hypothesis Matrix that turns abstract model reasoning into an inspectable, updateable evidence map.
 - Deterministic charts and timelines whose displayed numbers trace to validated structured data.
-- A complete no-key demo based on a real zinc-air prototype anomaly.
+- A signed-out-safe, no-key replay based on a real zinc-air prototype anomaly, with the paid route disabled at the server boundary.
 - Falsifiable next-experiment plans ranked for learning efficiency rather than novelty.
 
 ## What we learned
@@ -65,6 +65,6 @@ The best AI scientist is not the one that sounds most certain. It is the one tha
 
 ## What comes next
 
-The next step is richer evidence capture: importing sensor logs and attaching calibration metadata while retaining the same provenance rules. Longer term, BenchPilot could support experiment templates, replicated-run statistics, versioned protocols, and export to lab repositories. We would also evaluate hypothesis-quality and calibration against expert-reviewed cases before treating live recommendations as more than decision support.
+Current limitations are explicit: the three runs lack matched current, elapsed-time, hydration, construction, and environmental controls; the public release does not analyze new visitor uploads; and BenchPilot has not scientifically proven why the newest cell improved. The next step is richer evidence capture: importing sensor logs and attaching calibration metadata while retaining the same provenance rules. Longer term, BenchPilot could support experiment templates, replicated-run statistics, versioned protocols, and export to lab repositories. We would also evaluate hypothesis-quality and calibration against expert-reviewed cases before treating live recommendations as more than decision support.
 
 BenchPilot does not replace scientific judgment. It makes the path from a messy result to a better next experiment visible, reproducible, and shareable.

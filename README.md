@@ -2,9 +2,11 @@
 
 **Turn messy physical experiments into reproducible evidence.**
 
+**Public judge demo:** https://benchpilot-build-week.samuraicobra.chatgpt.site
+
 BenchPilot is a multimodal AI lab partner for independent inventors, makers, students, and small research teams. It turns photographs, rough notes, materials, and readings into a typed experimental record, challenges the first interpretation with falsifiable alternatives, ranks the next tests by information gained per unit of effort, and compares runs using only validated measurements.
 
-The one-click zinc-air battery investigation works without an API key. With a server-side key, the same interface analyzes new notes and images with GPT-5.6.
+The public Build Week release is a deterministic replay of previously generated GPT-5.6 analysis. It needs no API key, makes no paid model calls, and routes the typed fixture through the same production schemas and deterministic visualizations. A separate owner-only deployment retains genuine live image-and-notes analysis.
 
 ## The problem
 
@@ -20,7 +22,7 @@ The primary judge journey is **Capture → Structure → Challenge → Test → 
 2. **Structure** them into a Zod-validated experiment record with provenance, units, timestamps, variables, unknowns, and safety notes.
 3. **Challenge** the interpretation with no more than three competing mechanisms, contrary evidence, calibrated confidence, and a falsifier for each.
 4. **Test** a ranked experiment queue with exact controls, measurements, expected outcomes, stop conditions, effort, safety, and information value.
-5. **Compare** two runs on a deterministic timeline and voltage chart derived directly from validated measurements.
+5. **Compare** three real run histories on a deterministic timeline and voltage chart derived directly from validated measurements.
 
 The signature Hypothesis Matrix maps observations and planned measurements against each competing explanation. Adding the prepared, explicitly simulated measurement updates the matrix and explains which hypotheses gained or lost support without inserting that value into a real run or chart.
 
@@ -38,26 +40,22 @@ Codex was the lead engineering workflow for repository inspection, product plann
 
 ```mermaid
 flowchart LR
-  E["Photos + rough notes"] --> UI["Capture → Structure → Challenge → Test → Compare"]
-  UI --> API["Server-only /api/analyze"]
-  API --> G["MIME, count, and size guards"]
-  G --> P["Versioned evidence-only prompt"]
-  P --> O["OpenAI Responses API / GPT-5.6"]
-  O --> Z["Structured output + Zod validation"]
-  Z --> UI
-  UI --> D["Deterministic TypeScript derivations"]
-  D --> C["Timeline + chart"]
+  E["Real zinc-air notes + image evidence"] --> F["Validated TypeScript fixture"]
+  F --> UI["Capture → Structure → Challenge → Test → Compare"]
+  UI --> D["Deterministic derivations"]
+  D --> C["Three-run chart + timeline"]
   D --> M["Hypothesis Matrix"]
   D --> R["Printable report"]
-  UI --> L["Local browser persistence"]
+  X["Direct /api/analyze request"] --> B["403 PUBLIC_DEMO_ONLY"]
+  P["Separate owner-only Site"] --> O["Responses API / GPT-5.6"]
 ```
 
 Major areas:
 
 - `lib/domain/`: strict schemas, measurement parsing and ordering, chart/matrix derivations
-- `lib/demo/`: the latest real zinc-air run, an older validated collapse run, and the precomputed analysis envelope
+- `lib/demo/`: the latest real zinc-air run, the validated collapse run, the earlier recovery run, and the precomputed analysis envelope
 - `server/`: prompt versions and the guarded OpenAI SDK call
-- `app/api/analyze/`: server route, request parsing, typed errors, and abort handling
+- `app/api/analyze/`: a public hard-disable boundary that rejects GET and POST without importing OpenAI
 - `app/`: responsive workflow, evidence surfaces, matrix, chart, report, and local persistence
 - `tests/`: schema, parser, timeline, matrix, demo, API, UI, and rendered-build coverage
 
@@ -77,14 +75,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) and choose **Load zinc-air demo**. No environment variable is required for that path.
 
-For live analysis, put a valid server-side key in `.env.local`, restart the server, add notes and an accepted JPG, PNG, or WebP image, and choose **Analyze evidence**.
-
 ## Environment variables
 
-| Variable         | Required       | Purpose                                                                 |
-| ---------------- | -------------- | ----------------------------------------------------------------------- |
-| `OPENAI_API_KEY` | Live mode only | Server-side OpenAI API credential. Never prefix it with `NEXT_PUBLIC_`. |
-| `OPENAI_MODEL`   | No             | Model override; defaults to `gpt-5.6`.                                  |
+The public release requires no environment variables and ignores OpenAI credentials. `OPENAI_API_KEY` and `OPENAI_MODEL` remain documented only for the preserved private live-analysis deployment; they must never use a `NEXT_PUBLIC_*` prefix.
 
 ## Testing
 
@@ -105,19 +98,20 @@ The test surface covers structured-output validation, incomplete model output, m
 This repository targets OpenAI Sites through the bundled Vinext/Vite/Cloudflare runtime. It intentionally declares no D1 or R2 binding because the contest build uses browser persistence.
 
 1. Run `npm ci`, the complete quality-gate commands above, and `npm run build`.
-2. Publish the exact release commit using the OpenAI Sites workflow.
-3. Add `OPENAI_API_KEY` as a server secret only if live analysis should be enabled; optionally set `OPENAI_MODEL=gpt-5.6`.
-4. Smoke-test the one-click no-key path, all five stages, the matrix update, comparison chart, and report at the deployed URL.
+2. Publish the exact release commit to the separate public Sites project.
+3. Do not add `OPENAI_API_KEY` or any hosted secret to the public project.
+4. Smoke-test the signed-out one-click path, all five stages, the matrix update, three-run chart, report, and direct `/api/analyze` rejection.
+5. Keep the existing private live-analysis Site owner-only.
 
 The complete release procedure and rollback checklist are in `DEPLOYMENT_CHECKLIST.md`.
 
 ## Limitations
 
 - BenchPilot assists scientific reasoning; it does not prove a mechanism, certify safety, or replace replication and expert review.
-- The seeded demo has no original prototype image, so its visual observations are labeled as precomputed evidence.
+- The public fixture references the supplied Scopy screenshot evidence but does not bundle the original prototype photograph; the -0.460 V minimum is explicitly an uncertain transient, not proven reversal.
 - Browser persistence is device-local and images are not retained after analysis.
-- The two historical runs have different observation windows and incomplete load/current metadata, so comparison can shift support but cannot establish causality.
-- Live analysis depends on API access, latency, and the configured model; the deterministic no-key demo is the submission fallback.
+- The three runs have different observation windows and incomplete load/current metadata, so comparison can shift support but cannot establish causality.
+- Public visitors cannot perform new live analysis; that paid capability remains isolated in the private owner-only deployment.
 
 ## Future direction
 
@@ -126,8 +120,11 @@ The strongest next step is a guided measurement-entry loop: record a real planne
 ## Submission materials
 
 - `DEVPOST_SUBMISSION.md`
-- `DEMO_SCRIPT.md`
-- `DEMO_CHECKLIST.md`
+- `DEMO_SCRIPT_FINAL.md`
+- `DEMO_STORYBOARD.md`
+- `DEMO_RECORDING_CHECKLIST.md`
+- `DEMO_CAPTIONS.srt`
+- `RELEASE_QA.md`
 - `JUDGE_BRIEF.md`
 - `SCREENSHOTS.md`
 - `CODEX_BUILD_LOG.md`

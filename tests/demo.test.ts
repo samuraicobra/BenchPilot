@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { buildVoltageChartData } from "../app/voltage-chart";
 import { demoDatasetSchema } from "../lib/domain";
 import { demoDataset, loadDemoAnalysis, loadDemoDataset } from "../lib/demo";
 
 describe("zinc-air demo loading", () => {
   it("is validated by the same schema used at runtime", () => {
     expect(demoDatasetSchema.safeParse(demoDataset).success).toBe(true);
-    expect(loadDemoDataset().runs).toHaveLength(2);
+    expect(loadDemoDataset().runs).toHaveLength(3);
   });
 
   it("contains the exact supplied latest-run measurements and provenance", () => {
@@ -48,6 +49,81 @@ describe("zinc-air demo loading", () => {
     ]);
   });
 
+  it("preserves the exact earlier recovery series as a distinct validated run", () => {
+    const recovery = loadDemoDataset().runs.find(
+      ({ id }) => id === "zinc-air-recovery",
+    )!;
+    expect(
+      recovery.measurements.map(({ value, elapsedSeconds }) => [
+        value,
+        elapsedSeconds,
+      ]),
+    ).toEqual([
+      [0.912, 60],
+      [1.13, 300],
+      [1.253, 600],
+      [1.298, 1380],
+      [1.308, 1800],
+    ]);
+  });
+
+  it("derives every chart point from the validated fixture without interpolation", () => {
+    const dataset = loadDemoDataset();
+    const chart = buildVoltageChartData(dataset.runs);
+    const plotted = chart.flatMap((point) =>
+      Object.entries(point)
+        .filter(([key]) => key !== "elapsedSeconds")
+        .map(([runId, value]) => [runId, point.elapsedSeconds, value]),
+    );
+
+    const expected = dataset.runs.flatMap((run) =>
+      run.measurements
+        .filter(
+          ({ unit, elapsedSeconds }) => unit === "V" && elapsedSeconds !== null,
+        )
+        .map(({ elapsedSeconds, value }) => [run.id, elapsedSeconds, value]),
+    );
+    expect(plotted).toEqual(expect.arrayContaining(expected));
+    expect(plotted).toHaveLength(expected.length);
+    expect(plotted).not.toContainEqual([dataset.activeRunId, 60, 1.1]);
+  });
+
+  it("records the complete uncertainty boundary and construction facts", () => {
+    const dataset = loadDemoDataset();
+    const latest = dataset.runs.find(({ id }) => id === dataset.activeRunId)!;
+    const uncertaintyText = latest.uncertainties
+      .map(({ description }) => description)
+      .join(" ");
+
+    for (const term of [
+      /electrical load.*fan current/i,
+      /contact resistance/i,
+      /cathode thickness/i,
+      /wetting or flooding/i,
+      /electrolyte quantity/i,
+      /oxygen access/i,
+      /clamping pressure/i,
+      /zinc surface condition/i,
+      /temperature/i,
+      /time since cell assembly/i,
+    ]) {
+      expect(uncertaintyText).toMatch(term);
+    }
+    expect(latest.materials.map(({ name }) => name)).toContain(
+      "Stainless-steel mesh support",
+    );
+    expect(
+      latest.controlledVariables.find(
+        ({ id }) => id === "separator-configuration",
+      )?.value,
+    ).toBe("No conventional separator");
+    expect(latest.imageObservations[0].limitations).toMatch(
+      /not evidence of proven cell reversal/i,
+    );
+    expect(latest.missingInformation.join(" ")).toMatch(
+      /cannot be calculated without measured current or load resistance/i,
+    );
+  });
   it("loads a fresh validated clone so UI mutations cannot corrupt the seed", () => {
     const first = loadDemoDataset();
     first.runs[0].measurements[0].value = 999;
@@ -84,12 +160,16 @@ describe("zinc-air demo loading", () => {
     );
     expect(dataset.comparison.changedVariables).toEqual(
       expect.arrayContaining([
-        expect.stringMatching(/load current/i),
-        expect.stringMatching(/hydration/i),
-        expect.stringMatching(/cathode thickness/i),
-        expect.stringMatching(/air/i),
+        expect.stringMatching(/fan current/i),
         expect.stringMatching(/contact resistance/i),
-        expect.stringMatching(/elapsed time/i),
+        expect.stringMatching(/cathode thickness/i),
+        expect.stringMatching(/wetting or flooding/i),
+        expect.stringMatching(/electrolyte quantity/i),
+        expect.stringMatching(/oxygen access/i),
+        expect.stringMatching(/clamping pressure/i),
+        expect.stringMatching(/zinc surface condition/i),
+        expect.stringMatching(/temperature/i),
+        expect.stringMatching(/time since cell assembly/i),
       ]),
     );
   });

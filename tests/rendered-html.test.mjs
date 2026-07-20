@@ -35,7 +35,7 @@ test("server-renders the BenchPilot no-key landing path", async () => {
   assert.match(html, /Messy experiment\. Clear next move\./);
   assert.match(html, /Load zinc-air demo/);
   assert.match(html, /Capture the evidence/);
-  assert.match(html, /Demo ready · live optional/);
+  assert.match(html, /Public Build Week replay · no paid API/);
   assert.doesNotMatch(
     html,
     /codex-preview|react-loading-skeleton|Your site is taking shape/i,

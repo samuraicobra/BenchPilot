@@ -301,7 +301,7 @@ export const demoDatasetSchema = z
     description: textSchema,
     activeRunId: idSchema,
     comparisonRunId: idSchema,
-    runs: z.array(experimentRunSchema).length(2),
+    runs: z.array(experimentRunSchema).min(2).max(3),
     comparison: runComparisonSchema,
     simulatedMatrixUpdate: matrixUpdateScenarioSchema,
   })

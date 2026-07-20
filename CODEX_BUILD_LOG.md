@@ -129,3 +129,19 @@ Append one entry after integration rather than rewriting earlier facts:
 - Updated Devpost, judge, screenshot, recording-script, and recording-checklist copy to use the newest real evidence and to avoid carrying the old build's separator detail into the latest build without confirmation.
 - Final validation: formatting, ESLint, and strict TypeScript passed; `npm test` passed 17 domain/demo tests, 14 API/UI tests, and 2 rendered-build tests (33 total); the production build completed; production dependency audit reported zero vulnerabilities; the secret-pattern scan returned no matches.
 - Release commit `1baa395b2e6ebf6fb325aa8565f9944079f98d43` was pushed to the existing Sites source repository and saved as Sites version 2. The owner-only production deployment started but the hosting provider returned `Unauthorized`; access remained correctly configured as custom/owner-only. No access policy was changed and the previous production version remains live.
+
+### 2026-07-20 — Public Build Week release-candidate sprint
+
+- Preserved the existing owner-only live Sites deployment and created a separate public Sites project with no environment variables or hosted secrets.
+- Converted the public analysis route into a hard server boundary: GET and POST return `403 PUBLIC_DEMO_ONLY`, do not read request evidence, and import neither the OpenAI SDK nor `server/analyze`.
+- Replaced live-only public controls with an honest **Replay demo analysis** path. The interface now identifies itself as a previously generated, validated GPT-5.6 replay and never invokes `fetch` during replay.
+- Expanded the typed demo dataset to three real run histories: the latest 1.692 V / ~1.100 V result, the 1.562 → 0.732 → 0.482 V collapse, and the 0.912 → 1.308 V delayed recovery.
+- Added stainless-steel mesh, no-separator configuration, the uncertain -0.460 V Scopy transient, and an explicit refusal to calculate current, internal resistance, or power without sufficient data.
+- Expanded the causal warning to electrical load/fan current, contact resistance, cathode thickness, wetting/flooding, electrolyte quantity, oxygen access, clamping pressure, zinc surface condition, temperature, and time since assembly.
+- Exported chart-data construction as a deterministic helper and tested exact equality between chart tuples and time-qualified fixture measurements. The unknown-time loaded reading and simulated matrix outcome remain excluded.
+- Added arrow-key workflow navigation, visible image-observation limitations, a public replay disclosure, and three-run comparison/timeline support.
+- Added public-route, no-fetch replay, fixture, chart, uncertainty, keyboard, report, and recovery-series coverage. Final automated total before deployment: 43 passing tests (20 unit, 21 API/UI integration, 2 rendered HTML).
+- Local production HTTP smoke returned 200 for the product and 403 `PUBLIC_DEMO_ONLY` for direct GET/POST analysis requests. Built-output scans found zero secret/OpenAI endpoint markers and zero production source maps. `npm audit --omit=dev` found zero vulnerabilities.
+- Created the final 105-second script, storyboard, recording checklist, SRT captions, voiceover, shot list, truthful release QA ledger, and exact screenshot capture states. No screenshot or video file is claimed because browser capture/export was unavailable.
+- Public Sites version 1 deployed successfully at `https://benchpilot-build-week.samuraicobra.chatgpt.site`. A signed-out HTTPS request returned 200 with no sign-in gate. Production GET and POST requests to `/api/analyze` both returned 403 `PUBLIC_DEMO_ONLY` with `Cache-Control: no-store`.
+- The public project was rechecked with zero environment variables. The private live Site remained active, custom/owner-only with one allowed user, zero groups, and its hidden `OPENAI_API_KEY` secret unchanged.

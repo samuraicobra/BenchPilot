@@ -1,99 +1,74 @@
-# BenchPilot deployment checklist
+# BenchPilot Build Week deployment checklist
 
-## 1. Release candidate
+## Release candidate
 
-- [ ] Work from the intended release commit/branch; record its SHA below.
-- [ ] Confirm the page title, metadata, favicon, social image, and public product name all say **BenchPilot**.
-- [ ] Confirm the prominent **Load zinc-air demo** action works in a clean browser profile with no API key.
-- [ ] Remove starter copy, placeholder controls, debug panels, console logging of evidence, and unused assets.
-- [ ] Confirm no D1 or R2 binding is required; `.openai/hosting.json` should remain valid for browser-only persistence.
+- [x] Product title, metadata, favicon, and social image identify BenchPilot.
+- [x] Public source labels the experience as a validated GPT-5.6 demo replay.
+- [x] Demo fixture contains the latest, collapse, and recovery runs.
+- [x] No D1 or R2 binding is required.
+- [x] Separate public Sites project created; existing private live project was not modified.
 
-Release SHA: `1baa395b2e6ebf6fb325aa8565f9944079f98d43`
+Public URL: `https://benchpilot-build-week.samuraicobra.chatgpt.site`
 
-## 2. Secrets and configuration
+Public Sites project: `benchpilot-build-week`
 
-- [ ] Copy `.env.example` to `.env.local` for local live-analysis testing.
-- [ ] Set `OPENAI_API_KEY` only in the server/deployment secret store—never in a `NEXT_PUBLIC_*` variable.
-- [ ] Confirm the intended GPT-5.6 model identifier/default is documented and supported by the deployed API account.
-- [ ] Search tracked files for API keys, bearer tokens, private URLs, raw uploads, and local environment files.
-- [ ] Verify logs contain request metadata and typed error codes only, not image data, notes, keys, or complete model responses.
-- [ ] Confirm `.env.local`, Wrangler state, build output, and local browser fixtures are ignored.
+Private live URL: `https://benchpilot.samuraicobra.chatgpt.site` (owner-only, preserved)
 
-## 3. Local quality gate
+## Public API security
 
-Run from the repository root:
+- [x] Public project has zero environment variables and no hosted secret.
+- [x] `/api/analyze` imports neither the OpenAI SDK nor the live analysis service.
+- [x] Direct GET and POST return `403 PUBLIC_DEMO_ONLY` without reading evidence.
+- [x] Production source maps are disabled.
+- [x] Repository and built-output scans found no secret-value pattern.
+- [x] Built output contains no `OPENAI_API_KEY` or `api.openai.com` marker.
+- [x] `.env.example` contains empty variable names and safe documentation only.
 
-```bash
-npm ci
-npx prettier --check .
-npm run lint
-npx tsc --noEmit
-npm test
-npm run build
-```
+## Automated release gate
 
-- [ ] Formatting passes.
-- [ ] Lint passes with zero warnings/errors that affect submission quality.
-- [ ] Strict type checking passes.
-- [ ] Unit/integration tests pass.
-- [ ] Production build completes.
-- [ ] Record the command output summary in `CODEX_BUILD_LOG.md`.
+- [x] Formatter check passes.
+- [x] ESLint passes with zero warnings and zero errors.
+- [x] Strict TypeScript check passes.
+- [x] Unit tests pass.
+- [x] Integration/API/UI tests pass.
+- [x] Rendered production HTML tests pass.
+- [x] Production Vinext/Vite build succeeds.
+- [x] `npm audit --omit=dev` reports zero vulnerabilities.
+- [x] Local production HTTP smoke: `/` returns 200; analysis GET/POST return 403.
 
-## 4. Functional release checks
+See `RELEASE_QA.md` and `CODEX_BUILD_LOG.md` for exact evidence and counts.
 
-- [ ] Clean profile, no key: load demo and traverse Capture → Structure → Challenge → Test → Compare.
-- [ ] Refresh after loading the demo: supported local state restores cleanly.
-- [ ] Clear local storage: the empty state and demo action return.
-- [ ] Every plotted voltage matches the seeded structured record; no chart uses model-authored display coordinates.
-- [ ] Add the prepared measurement: matrix cells and the change explanation update together.
-- [ ] Print/export the report and verify provenance and uncertainty labels remain visible.
-- [ ] Live key configured: submit valid notes and an accepted image type; confirm a schema-valid record.
-- [ ] Invalid key: show a recoverable, non-secret error.
-- [ ] Malformed/incomplete upstream output fixture: reject it before UI state.
-- [ ] Unsupported file, oversized file/request, abort, timeout, and offline paths have clear recovery actions.
+## Data integrity
 
-## 5. Accessibility and responsive QA
+- [x] Latest run: 1.692 V fresh OCV and approximately 1.100 V loaded with unknown elapsed time.
+- [x] Collapse run: 1.562 V OCV, 0.732 V at 10 s, 0.482 V at 60 s.
+- [x] Recovery run: 0.912 V at 1 m, 1.130 V at 5 m, 1.253 V at 10 m, 1.298 V at 23 m, 1.308 V at 30 m.
+- [x] Chart tuples exactly equal time-qualified fixture measurements.
+- [x] Unknown-time 1.100 V reading is absent from the chart.
+- [x] Simulated matched-replicate reading is absent from observed runs and charts.
+- [x] No current, internal resistance, or output power is calculated without sufficient input data.
+- [x] -0.460 V screenshot minimum is labeled an uncertain transient, not proven reversal.
+- [x] Ten uncontrolled variables are listed before causal attribution.
 
-- [ ] Complete the primary flow using keyboard only; focus order follows the visual workflow.
-- [ ] Controls have accessible names; tabs/steps expose current selection; matrix cells are understandable without color.
-- [ ] Focus indicators remain visible against every surface.
-- [ ] Check contrast for fact, observation, hypothesis, warning, unknown, and matrix states.
-- [ ] Verify reduced-motion behavior and that skeletons do not create repetitive screen-reader announcements.
-- [ ] Inspect at 390 × 844, 768 × 1024, 1440 × 900, and 1920 × 1080.
-- [ ] At 200% zoom, no required action or scientific label is clipped.
+## Production verification
 
-## 6. Publish through OpenAI Sites
+- [x] Public deployment reaches `succeeded`.
+- [x] Open public URL signed out and confirm no ChatGPT sign-in gate.
+- [ ] Load demo and traverse Capture → Structure → Challenge → Test → Compare.
+- [ ] Apply the simulated matrix update and confirm its explanation.
+- [ ] Verify report Print / save PDF in the target browser.
+- [x] Recheck direct `/api/analyze` GET and POST on production.
+- [ ] Confirm no client-console or static-asset failures.
 
-- [ ] Confirm the production build succeeds on the configured Vinext/Vite/Cloudflare Sites runtime.
-- [ ] Publish the release candidate using the repository’s OpenAI Sites deployment workflow.
-- [ ] Add `OPENAI_API_KEY` to the production server environment if live analysis will be demonstrated.
-- [ ] Do not add database or object-storage bindings for the contest build.
-- [ ] Record the public URL, deployment timestamp, release SHA, and deployment ID below.
+## Manual visual and recording checks
 
-- Private production URL: `https://benchpilot.samuraicobra.chatgpt.site`
-- Deployment time: `2026-07-18 15:30 UTC`
-- Deployment ID: `appgdep_6a5b9c0fec7081919f3ad3af997c80fb`
+- [ ] Desktop 1440 × 900 visual pass.
+- [ ] Tablet 768 × 1024 visual pass.
+- [ ] Mobile 390 × 844 visual pass.
+- [ ] Keyboard-only complete flow and 200% zoom pass.
+- [ ] Capture the eight states in `submission/screenshots/README.md`.
+- [ ] Record and verify the 105-second video using `DEMO_SHOT_LIST.md`.
+- [ ] Add and verify `DEMO_CAPTIONS.srt`.
+- [ ] Submit the Devpost entry and accept contest terms personally.
 
-The deployed version is owner-only by default. Before sending the URL to judges, the owner must explicitly change Sites access to public and repeat the signed-out production smoke test.
-
-Latest release status: Sites version 2 was saved from the release SHA above, but its owner-only deployment failed with a provider `Unauthorized` response. The URL currently serves the prior successful version until the hosting authorization issue is resolved and version 2 is redeployed.
-
-## 7. Production smoke test
-
-- [ ] Open the public URL in a signed-out/incognito browser.
-- [ ] Time to a meaningful first screen is acceptable on a cold load.
-- [ ] **Load zinc-air demo** completes without a network dependency.
-- [ ] All five stages, the chart, Hypothesis Matrix update, and report work.
-- [ ] Direct refresh and browser back/forward behavior are safe.
-- [ ] No client console errors, failed static assets, mixed content, or source maps exposing secrets.
-- [ ] If enabled, make one small live API request and verify server-side error/timeout behavior.
-- [ ] Re-run the 105-second recording path on the public build.
-
-## 8. Submission handoff
-
-- [ ] Freeze the demo dataset after chart-value audit.
-- [ ] Capture screenshots listed in `SCREENSHOTS.md`.
-- [ ] Record the primary no-key video and optional live-analysis insert.
-- [ ] Verify Devpost copy and judge brief match the released behavior.
-- [ ] Keep the last known-good deployment URL and a local screen recording as fallback.
-- [ ] Do not redeploy during judging unless fixing a release-blocking issue.
+Manual items remain unchecked because no browser automation, screen-capture, or legal-submission authority is available in this environment.

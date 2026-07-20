@@ -1084,11 +1084,25 @@ const latestRun: ExperimentRun = {
       provenance: "user_reported",
     },
   ],
-  materials: materials.map((item) =>
-    item.id === "air-cathode"
-      ? { ...item, composition: "Activated carbon and manganese dioxide" }
-      : { ...item },
-  ),
+  materials: [
+    ...materials.map((item) =>
+      item.id === "air-cathode"
+        ? {
+            ...item,
+            composition: "Activated carbon and manganese dioxide",
+          }
+        : { ...item },
+    ),
+    {
+      id: "stainless-steel-mesh",
+      name: "Stainless-steel mesh support",
+      role: "Cathode support/current collector",
+      composition: "Stainless steel; grade and mesh geometry not recorded",
+      quantity: null,
+      unit: null,
+      provenance: "user_reported",
+    },
+  ],
   independentVariables: [
     {
       id: "construction-revision",
@@ -1100,9 +1114,9 @@ const latestRun: ExperimentRun = {
       provenance: "user_reported",
     },
   ],
-  controlledVariables: commonVariables.controlledVariables
-    .filter((item) => item.id === "nominal-chemistry")
-    .map((item) => ({ ...item })),
+  controlledVariables: commonVariables.controlledVariables.map((item) => ({
+    ...item,
+  })),
   measurements: [
     {
       id: "latest-voltage-ocv",
@@ -1166,8 +1180,28 @@ const latestRun: ExperimentRun = {
         "User-reported format; its causal relationship to performance is unknown.",
       provenance: "user_reported",
     },
+    {
+      id: "reported-no-conventional-separator-latest",
+      statement:
+        "The latest construction uses stainless-steel mesh support and no conventional separator.",
+      elapsedSeconds: null,
+      sourceNote:
+        "User-reported construction facts; neither feature has been isolated as the cause of improved loaded voltage.",
+      provenance: "user_reported",
+    },
   ],
-  imageObservations: [],
+  imageObservations: [
+    {
+      id: "image-scopy-negative-transient",
+      statement:
+        "The Scopy screenshot displays a minimum near -0.460 V during the captured interval.",
+      imageId: "scopy-screenshot",
+      confidence: "medium",
+      limitations:
+        "This is an uncertain transient in a screenshot. Timing, probe state, circuit condition, and artifact rejection are unavailable, so it is not evidence of proven cell reversal.",
+      provenance: "image_derived",
+    },
+  ],
   calculatedResults: [
     {
       id: "calculated-latest-drop",
@@ -1184,7 +1218,8 @@ const latestRun: ExperimentRun = {
   uncertainties: [
     {
       id: "latest-uncertainty-load",
-      description: "Load identity and current were not recorded.",
+      description:
+        "Electrical load identity and fan current were not recorded.",
       impact:
         "The latest and older voltage values may reflect different demand.",
       mitigation: "Use one characterized load and log synchronized current.",
@@ -1201,7 +1236,7 @@ const latestRun: ExperimentRun = {
     {
       id: "latest-uncertainty-hydration",
       description:
-        "Electrolyte dose, placement, and cell hydration were not logged.",
+        "Electrolyte quantity, placement, and cathode wetting or flooding were not logged.",
       impact: "Ionic wetting may differ between builds.",
       mitigation: "Weigh electrolyte and the assembled cell before each test.",
     },
@@ -1215,15 +1250,46 @@ const latestRun: ExperimentRun = {
     {
       id: "latest-uncertainty-air",
       description:
-        "Exposed cathode area and ambient airflow were not controlled.",
+        "Oxygen access, exposed cathode area, and ambient airflow were not controlled.",
       impact: "Oxygen availability may explain some or all of the gain.",
       mitigation: "Use a measured air aperture and fixed orientation/airflow.",
     },
     {
       id: "latest-uncertainty-contact",
-      description: "Contact resistance and fixture pressure were not measured.",
+      description: "Contact resistance was not measured.",
       impact: "A connection improvement could raise loaded terminal voltage.",
       mitigation: "Use fixed-pressure contacts and measure connection drops.",
+    },
+    {
+      id: "latest-uncertainty-clamping",
+      description: "Clamping pressure was not measured or held constant.",
+      impact:
+        "Pressure can change both electrical contact and electrode/electrolyte geometry.",
+      mitigation: "Use a fixed-pressure fixture and record its setting.",
+    },
+    {
+      id: "latest-uncertainty-zinc-surface",
+      description: "Zinc surface condition and preparation were not logged.",
+      impact:
+        "Oxide state, cleanliness, and active area may differ between builds.",
+      mitigation:
+        "Standardize zinc grade, area, cleaning, and time to assembly.",
+    },
+    {
+      id: "latest-uncertainty-temperature",
+      description: "Cell and ambient temperature were not recorded.",
+      impact:
+        "Electrochemical kinetics, electrolyte conductivity, and fan demand may vary with temperature.",
+      mitigation:
+        "Record temperature and test matched cells in one controlled interval.",
+    },
+    {
+      id: "latest-uncertainty-assembly-age",
+      description: "Time since cell assembly was not matched or recorded.",
+      impact:
+        "Wetting, corrosion, and oxygen access may evolve before the load is applied.",
+      mitigation:
+        "Use a fixed conditioning time and timestamp assembly and load connection.",
     },
     {
       id: "latest-uncertainty-replicates",
@@ -1241,6 +1307,7 @@ const latestRun: ExperimentRun = {
     "Contact materials, pressure, and resistance",
     "Complete old-versus-latest construction change log",
     "Matched replicate count",
+    "Current, internal resistance, and output power cannot be calculated without measured current or load resistance",
   ],
   nextExperiments: latestNextExperiments,
   hypothesisMatrix: {
@@ -1382,13 +1449,13 @@ export const demoDataset: DemoDataset = demoDatasetSchema.parse({
     "A real latest zinc-air result compared with a validated earlier collapse, structured to preserve uncertainty and prevent premature causal attribution.",
   activeRunId: latestRun.id,
   comparisonRunId: activeRun.id,
-  runs: [latestRun, activeRun],
+  runs: [latestRun, activeRun, historicalRecoveryRun],
   comparison: {
     id: "comparison-latest-versus-collapse",
     baselineRunId: activeRun.id,
     comparisonRunId: latestRun.id,
     summary:
-      "The latest cell measured 1.692 V open circuit and approximately 1.10 V under load, compared with an older run that reached 0.482 V after 60 seconds. Because load current, elapsed time, hydration, cathode thickness, air exposure, and contact resistance were not matched, the improvement is real evidence but not causal proof.",
+      "The latest cell measured 1.692 V open circuit and approximately 1.10 V under load, compared with an older run that reached 0.482 V after 60 seconds. Because electrical load or fan current, contact resistance, cathode thickness, cathode wetting or flooding, electrolyte quantity, oxygen access, clamping pressure, zinc surface condition, temperature, and time since assembly were not controlled, the improvement is real evidence but not causal proof—and cannot be attributed to acrylic binder or any single change.",
     configurationDifferences: [
       {
         field: "Initial condition",
@@ -1423,12 +1490,16 @@ export const demoDataset: DemoDataset = demoDatasetSchema.parse({
       },
     ],
     changedVariables: [
-      "Load current and load identity",
-      "Cell hydration and electrolyte dose",
-      "Cathode thickness, mass loading, and binder ratio",
-      "Exposed air area and airflow",
-      "Contact resistance and fixture pressure",
-      "Elapsed time under load",
+      "Electrical load or fan current",
+      "Contact resistance",
+      "Cathode thickness",
+      "Cathode wetting or flooding",
+      "Electrolyte quantity",
+      "Oxygen access",
+      "Clamping pressure",
+      "Zinc surface condition",
+      "Temperature",
+      "Time since cell assembly",
     ],
     hypothesisSupportShifts: [
       {
