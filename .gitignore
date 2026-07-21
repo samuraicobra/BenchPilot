@@ -46,3 +46,6 @@ next-env.d.ts
 # local artifacts
 /coverage/
 /screenshots/
+
+# generated submission video (kept locally; excluded from Sites source)
+/submission/video/*.webm

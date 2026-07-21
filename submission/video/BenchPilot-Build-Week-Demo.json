@@ -1,0 +1,11 @@
+{
+  "generatedAt": "2026-07-21T01:05:27.700Z",
+  "source": "https://benchpilot-build-week.samuraicobra.chatgpt.site",
+  "output": "BenchPilot-Build-Week-Demo.webm",
+  "format": "WebM (VP8, silent, burned-in captions)",
+  "resolution": "1920x1080",
+  "intendedDurationSeconds": 105,
+  "trimmedPreludeSeconds": 2.691,
+  "captionsSource": "DEMO_CAPTIONS.srt",
+  "browserErrors": []
+}

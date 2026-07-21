@@ -18,6 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "BenchPilot — Turn experiments into evidence",
     description:
       "A multimodal AI lab partner that turns messy physical experiments into reproducible evidence.",
+    icons: {
+      icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    },
     openGraph: {
       title: "BenchPilot",
       description:

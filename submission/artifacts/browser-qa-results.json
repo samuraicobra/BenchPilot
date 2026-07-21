@@ -1,0 +1,157 @@
+{
+  "generatedAt": "2026-07-21T01:08:52.539Z",
+  "url": "https://benchpilot-build-week.samuraicobra.chatgpt.site",
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "horizontalOverflow": 0,
+      "navigationUsable": true,
+      "chartLegible": true,
+      "matrixReachable": true,
+      "reportReachable": true,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "result": "pass"
+    },
+    {
+      "name": "laptop",
+      "width": 1280,
+      "height": 800,
+      "horizontalOverflow": 0,
+      "navigationUsable": true,
+      "chartLegible": true,
+      "matrixReachable": true,
+      "reportReachable": true,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "result": "pass"
+    },
+    {
+      "name": "tablet",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflow": 0,
+      "navigationUsable": true,
+      "chartLegible": true,
+      "matrixReachable": true,
+      "reportReachable": true,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "result": "pass"
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "horizontalOverflow": 0,
+      "navigationUsable": true,
+      "chartLegible": true,
+      "matrixReachable": true,
+      "reportReachable": true,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "result": "pass"
+    },
+    {
+      "name": "desktop-200-percent",
+      "width": 720,
+      "height": 500,
+      "deviceScaleFactor": 2,
+      "horizontalOverflow": 0,
+      "navigationUsable": true,
+      "chartLegible": true,
+      "matrixReachable": true,
+      "reportReachable": true,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "result": "pass"
+    }
+  ],
+  "keyboard": {
+    "result": "pass",
+    "visited": ["capture", "structure", "challenge", "test", "compare"],
+    "focusVisible": true,
+    "reportReached": true,
+    "escapeClosesReport": true
+  },
+  "dataAudit": {
+    "latestFreshOcv": true,
+    "latestLoadedUnknownTime": true,
+    "earlierCollapse": true,
+    "earlierRecovery": true,
+    "unknownTimeNotPlottedDisclosure": true,
+    "causalWarning": true,
+    "unsupportedCalculationsAbsent": true
+  },
+  "routeSecurity": {
+    "getStatus": 403,
+    "postStatus": 403,
+    "getCode": "PUBLIC_DEMO_ONLY",
+    "postCode": "PUBLIC_DEMO_ONLY",
+    "result": "pass"
+  },
+  "screenshots": [
+    {
+      "filename": "01-opening.png",
+      "width": 1440,
+      "height": 900,
+      "state": "Fresh public opening with replay disclosure and Load zinc-air demo CTA"
+    },
+    {
+      "filename": "02-structured-record.png",
+      "width": 1440,
+      "height": 900,
+      "state": "Structure stage with validated measurement timeline and provenance"
+    },
+    {
+      "filename": "03-challenge.png",
+      "width": 1440,
+      "height": 900,
+      "state": "Challenge My Interpretation with competing falsifiable mechanisms"
+    },
+    {
+      "filename": "04-hypothesis-matrix.png",
+      "width": 1440,
+      "height": 900,
+      "state": "Hypothesis Matrix after visibly simulated matched-replicate update"
+    },
+    {
+      "filename": "05-ranked-tests.png",
+      "width": 1440,
+      "height": 900,
+      "state": "Ranked next experiments with information-gain-per-effort score"
+    },
+    {
+      "filename": "06-run-comparison.png",
+      "width": 1440,
+      "height": 900,
+      "state": "Three-run voltage comparison and causal-attribution warning"
+    },
+    {
+      "filename": "07-report.png",
+      "width": 1440,
+      "height": 900,
+      "state": "Exportable experiment report with validated values and evidence boundary"
+    },
+    {
+      "filename": "08-mobile.png",
+      "width": 390,
+      "height": 844,
+      "state": "Mobile Capture stage with validated replay loaded"
+    }
+  ],
+  "reportPdf": {
+    "filename": "BenchPilot-Zinc-Air-Report.pdf",
+    "generated": true,
+    "containsRequiredValues": true
+  },
+  "navigation": {
+    "result": "pass",
+    "directUrl": "https://benchpilot-build-week.samuraicobra.chatgpt.site/",
+    "backTarget": "about:blank",
+    "forwardStatus": 200,
+    "reloadPersistence": true
+  }
+}

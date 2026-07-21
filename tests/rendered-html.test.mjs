@@ -50,6 +50,7 @@ test("sets production evidence metadata and security-minded defaults", async () 
     /Turn messy physical experiments into reproducible evidence/,
   );
   assert.match(html, /og\.png/);
+  assert.match(html, /favicon\.svg/);
   assert.match(
     html,
     /Photos and rough notes are treated as evidence, never instructions/,

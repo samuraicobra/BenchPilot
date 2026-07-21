@@ -1,0 +1,54 @@
+{
+  "verifiedAt": "2026-07-21T01:05:56.585Z",
+  "durationSeconds": 105,
+  "width": 1920,
+  "height": 1080,
+  "aspectRatio": "16:9",
+  "frameRate": 25,
+  "format": "WebM/VP8",
+  "silent": true,
+  "burnedInCaptions": true,
+  "captionsSource": "DEMO_CAPTIONS.srt",
+  "frames": [
+    {
+      "time": 1,
+      "filename": "frame-001.png",
+      "bytes": 611027
+    },
+    {
+      "time": 12,
+      "filename": "frame-012.png",
+      "bytes": 832356
+    },
+    {
+      "time": 30,
+      "filename": "frame-030.png",
+      "bytes": 732596
+    },
+    {
+      "time": 50,
+      "filename": "frame-050.png",
+      "bytes": 866756
+    },
+    {
+      "time": 70,
+      "filename": "frame-070.png",
+      "bytes": 953485
+    },
+    {
+      "time": 82,
+      "filename": "frame-082.png",
+      "bytes": 755563
+    },
+    {
+      "time": 92,
+      "filename": "frame-092.png",
+      "bytes": 885349
+    },
+    {
+      "time": 103,
+      "filename": "frame-103.png",
+      "bytes": 659442
+    }
+  ]
+}
