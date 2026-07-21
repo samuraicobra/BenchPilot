@@ -5,7 +5,7 @@
 - **Project title:** BenchPilot
 - **Tagline:** Turn messy physical experiments into reproducible evidence.
 - **Public demo:** https://benchpilot-build-week.samuraicobra.chatgpt.site
-- **Repository information:** local Git checkout on `master`; final release tag `build-week-submission-final`; no hosted repository remote is configured in this checkout.
+- **Repository:** https://github.com/samuraicobra/BenchPilot — `master`; final release tag `build-week-submission-final`.
 - **Short description:** BenchPilot turns experiment photos, rough notes, and measurements into a validated record, competing falsifiable hypotheses, high-information next tests, and evidence-grounded run comparisons.
 - **Full Devpost copy:** `submission/final/DEVPOST_COPY_PASTE.md`
 - **Judge brief:** `submission/final/JUDGE_BRIEF.md`
@@ -44,7 +44,7 @@
 
 ## Final upload actions
 
-- [ ] Add the hosted repository URL to the contest form.
+- [ ] Paste https://github.com/samuraicobra/BenchPilot into the contest form.
 - [ ] Upload the 105-second WebM and verify platform playback/caption legibility.
 - [ ] Upload screenshots in the numeric order above and paste captions from `submission/screenshots/README.md`.
 - [ ] Paste the final description from `DEVPOST_COPY_PASTE.md`.

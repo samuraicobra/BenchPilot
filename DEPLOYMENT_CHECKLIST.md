@@ -68,7 +68,8 @@
 
 ## Human-only actions
 
-- [ ] Add the hosted repository URL to the submission form.
+- [x] Publish the repository at https://github.com/samuraicobra/BenchPilot.
+- [ ] Paste the repository URL into the submission form.
 - [ ] Upload the WebM, screenshots, and final copy.
 - [ ] Optionally record/add the supplied human voiceover.
 - [ ] Review and accept contest/legal terms personally.

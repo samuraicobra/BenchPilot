@@ -18,7 +18,7 @@ https://benchpilot-build-week.samuraicobra.chatgpt.site
 
 ## Repository
 
-Local Git release on `master`, tagged `build-week-submission-final`. This checkout has no hosted repository remote; the submitter will attach the contest repository URL in the form.
+https://github.com/samuraicobra/BenchPilot — release branch `master`, tagged `build-week-submission-final`.
 
 ## Demo video
 
