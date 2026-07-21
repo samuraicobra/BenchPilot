@@ -2124,29 +2124,43 @@ textarea:focus-visible,
 }
 
 @media print {
-  body {
+  html,
+  body,
+  .bp-app {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
     background: white;
   }
-  body > * {
-    visibility: hidden;
-  }
-  .report-backdrop,
-  .report-backdrop * {
-    visibility: visible;
+  .bp-app > *:not(.report-backdrop) {
+    display: none !important;
   }
   .report-backdrop {
-    position: absolute;
-    inset: 0;
+    position: static;
+    inset: auto;
+    overflow: visible;
     padding: 0;
     background: white;
+    backdrop-filter: none;
+  }
+  .report-shell {
+    width: 100%;
+    margin: 0;
   }
   .report-toolbar {
     display: none;
   }
   .report-sheet {
     width: 100%;
+    padding: 12mm;
     border: 0;
     border-radius: 0;
+    background: white;
     box-shadow: none;
+  }
+  .timeline-item,
+  .report-section p,
+  .report-disclaimer {
+    break-inside: avoid;
   }
 }
