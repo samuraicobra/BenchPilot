@@ -140,6 +140,13 @@ describe("BenchPilot demo workflow", () => {
     });
     expect(report).toHaveTextContent("1.692 V");
     expect(report).toHaveTextContent("1.1 V");
+    expect(report).toHaveTextContent("Uncertainty and missing controls");
+    expect(report).toHaveTextContent(
+      "Electrical load identity and fan current were not recorded.",
+    );
+    expect(report).toHaveTextContent(
+      "Elapsed time for the approximately 1.10 V reading is unknown.",
+    );
     fireEvent.click(screen.getByRole("button", { name: /print \/ save PDF/i }));
     expect(print).toHaveBeenCalledOnce();
   });

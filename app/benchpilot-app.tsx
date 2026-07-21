@@ -1577,6 +1577,19 @@ function ReportDialog({
             </div>
           </section>
           <section className="report-section">
+            <h2>Uncertainty and missing controls</h2>
+            {run.uncertainties.map((uncertainty) => (
+              <p key={uncertainty.id}>
+                <b>{uncertainty.description}</b> {uncertainty.impact}
+                <br />
+                <em>Resolve:</em> {uncertainty.mitigation}
+              </p>
+            ))}
+            <p>
+              <b>Missing controls:</b> {run.missingInformation.join("; ")}
+            </p>
+          </section>
+          <section className="report-section">
             <h2>Competing hypotheses</h2>
             {run.hypotheses.map((hypothesis) => (
               <p key={hypothesis.id}>
